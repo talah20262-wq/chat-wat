@@ -5,123 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Star | واتساب النجم</title>
     
-    <meta name="theme-color" content="#0b141a">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIldoYXRzQXBwIFN0YXIiLAogICJzaG9ydF9uYW1lIjogIldBIFN0YXIiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBiMTQxYSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8zNTM2LzM1MzY0NDUucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciIH1dCn0=">
-
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --main-bg: #0b141a; --accent: #00a884; --gold: #ffd700; --card-bg: #222e35; }
-        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--main-bg); color: #e9edef; overflow: hidden; }
+        :root { --main-bg: #0b141a; --accent: #00a884; --gold: #ffd700; --verify: #2196f3; }
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--main-bg); color: #e9edef; overflow: hidden; }
         
-        /* تصميم اسم المالك (النجم) */
-        .owner-style {
-            color: #000 !important; /* لون الخط أسود */
-            background: linear-gradient(45deg, #ffd700, #fff700); /* لون ذهبي منير */
-            padding: 2px 10px;
-            border-radius: 5px;
+        /* ستايل المالك (النجم) */
+        .owner-badge {
+            background: linear-gradient(45deg, #ffd700, #ffae00);
+            color: #000 !important;
+            padding: 3px 12px;
+            border-radius: 8px;
             font-weight: 900;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); /* إشعاع ذهبي */
-            text-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            border: 1px solid #000;
         }
+        .v-check { color: var(--verify); font-size: 0.9rem; background: white; border-radius: 50%; padding: 1px; }
 
-        /* واجهة الدخول */
+        /* الشاشة الرئيسية */
         #auth-screen { position: fixed; inset: 0; background: #111b21; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .auth-card { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
-        .auth-btn { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; background: #2a3942; color: white; text-align: center; }
+        .auth-card { background: #222e35; padding: 30px; border-radius: 20px; width: 85%; max-width: 360px; text-align: center; border: 1px solid #3b4a54; }
+        .auth-btn { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; background: #2a3942; color: white; text-align: center; outline: none; }
 
-        /* الشات */
+        /* واجهة الشات */
         #main-app { display: none; height: 100vh; flex-direction: column; }
-        header { background: #202c33; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 10px; }
+        header { background: #202c33; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3942; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 12px; }
         
-        .msg { max-width: 80%; padding: 10px; border-radius: 12px; position: relative; }
-        .sent { align-self: flex-end; background: #005c4b; }
-        .received { align-self: flex-start; background: #202c33; }
-        .msg-tools { font-size: 0.7rem; margin-top: 5px; display: flex; gap: 10px; opacity: 0.6; }
-        .msg-tools span:hover { color: var(--gold); cursor: pointer; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 15px; position: relative; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
+        .sent { align-self: flex-end; background: #005c4b; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: #202c33; border-bottom-left-radius: 2px; }
+        
+        .msg-info { font-size: 0.7rem; margin-top: 6px; display: flex; gap: 12px; opacity: 0.7; justify-content: flex-end; }
+        .admin-tools { cursor: pointer; color: #ff4b4b; }
+        .admin-tools:hover { text-decoration: underline; }
 
         /* لوحة التحكم */
-        #admin-panel { position: fixed; inset: 0; background: #0b141a; z-index: 10000; display: none; padding: 20px; overflow-y: auto; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #202c33; padding: 15px; border-radius: 10px; text-align: center; border-bottom: 3px solid var(--gold); }
+        #admin-panel { position: fixed; inset: 0; background: rgba(11, 20, 26, 0.98); z-index: 10000; display: none; padding: 25px; overflow-y: auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 20px; }
+        .stat-box { background: #202c33; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #3b4a54; }
+
+        .input-bar { background: #202c33; padding: 12px; display: flex; align-items: center; gap: 12px; }
+        .msg-input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-card" id="gate">
-        <h1 style="color:var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">واتساب النجم</h1>
+        <h1 style="color:var(--gold); margin-bottom:25px;">واتساب النجم <i class="fas fa-certificate" style="color:var(--verify); font-size:1.5rem"></i></h1>
         <button class="auth-btn" style="background:var(--gold); color:#000" onclick="showSec('owner-form')">دخول المالك</button>
-        <button class="auth-btn" style="background:#3b4a54; color:white" onclick="showSec('signup-form')">طلب انضمام</button>
-        <button class="auth-btn" style="background:#005c4b; color:white" onclick="showSec('login-form')">دخول بالكود</button>
+        <button class="auth-btn" style="background:#3b4a54; color:white" onclick="showSec('signup-form')">إنشاء حساب جديد</button>
+        <button class="auth-btn" style="background:#005c4b; color:white" onclick="showSec('login-form')">دخول مباشر</button>
     </div>
 
     <div class="auth-card" id="owner-form" style="display:none">
-        <h3>دخول المالك</h3>
-        <input type="password" id="owner-pass" placeholder="كلمة السر">
-        <button class="auth-btn" style="background:var(--gold)" onclick="authOwner()">دخول</button>
-        <p onclick="showSec('gate')" style="cursor:pointer">رجوع</p>
+        <h3>تسجيل المالك</h3>
+        <input type="password" id="owner-pass" placeholder="كود المرور السري">
+        <button class="auth-btn" style="background:var(--gold)" onclick="authOwner()">فتح النظام</button>
+        <p onclick="showSec('gate')" style="cursor:pointer; font-size:0.9rem">رجوع</p>
     </div>
 
     <div class="auth-card" id="signup-form" style="display:none">
         <h3>طلب انضمام</h3>
-        <input type="text" id="reg-name" placeholder="اسمك">
-        <input type="text" id="reg-phone" placeholder="رقم هاتفك">
+        <input type="text" id="reg-name" placeholder="اسم العرض">
+        <input type="text" id="reg-phone" placeholder="رقم الموبايل">
         <button class="auth-btn" style="background:var(--accent); color:white" onclick="submitSignup()">إرسال الطلب</button>
         <p onclick="showSec('gate')" style="cursor:pointer">رجوع</p>
     </div>
 
     <div class="auth-card" id="wait-screen" style="display:none">
         <h3 style="color:var(--gold)">طلبك قيد المراجعة</h3>
-        <div id="wait-loader" style="margin:20px 0;"><i class="fas fa-star fa-spin fa-3x" style="color:var(--gold)"></i></div>
-        <div id="code-box" style="display:none">
-            <p>كود دخولك هو:</p>
-            <h1 id="res-code" style="letter-spacing:5px; color:var(--gold)">----</h1>
-            <button class="auth-btn" style="background:var(--accent); color:white" onclick="autoEntry()">دخول الآن</button>
+        <p>سيقوم النجم بإصدار كود دخولك قريباً...</p>
+        <div id="code-area" style="display:none; margin-top:20px;">
+            <p>كودك الخاص:</p>
+            <h2 id="res-code" style="color:var(--gold); letter-spacing:5px;">----</h2>
+            <button class="auth-btn" style="background:var(--accent); color:white" onclick="autoLogin()">دخول الآن</button>
         </div>
     </div>
 
     <div class="auth-card" id="login-form" style="display:none">
-        <h3>دخول سريع</h3>
+        <h3>دخول المستخدمين</h3>
         <input type="text" id="log-phone" placeholder="رقم الهاتف">
-        <input type="text" id="log-code" placeholder="الكود">
+        <input type="text" id="log-code" placeholder="كود الدخول">
         <button class="auth-btn" style="background:var(--accent); color:white" onclick="authManual()">دخول</button>
     </div>
 </div>
 
 <div id="main-app">
     <header>
-        <div id="user-header">...</div>
-        <div style="display:flex; gap:15px">
-            <i id="admin-icon" class="fas fa-crown" style="display:none; color:var(--gold); cursor:pointer" onclick="toggleAdmin(true)"></i>
+        <div id="user-display" style="display:flex; align-items:center; gap:10px">
+            <img id="my-avatar" src="" width="35" height="35" style="border-radius:50%; object-fit:cover; display:none">
+            <span id="my-name-span">...</span>
+        </div>
+        <div style="display:flex; gap:20px; align-items:center">
+            <i id="admin-crown" class="fas fa-crown" style="display:none; color:var(--gold); cursor:pointer; font-size:1.3rem" onclick="toggleAdmin(true)"></i>
             <i class="fas fa-sign-out-alt" style="cursor:pointer" onclick="localStorage.clear(); location.reload();"></i>
         </div>
     </header>
+    
     <div id="chat-box"></div>
-    <div style="background:#202c33; padding:10px; display:flex; gap:10px">
-        <input type="text" id="msg-input" style="flex:1" placeholder="اكتب رسالة...">
-        <button onclick="sendMsg()" style="background:none; border:none; color:var(--accent); font-size:1.5rem"><i class="fas fa-paper-plane"></i></button>
+
+    <div class="input-bar">
+        <input type="text" id="msg-input" class="msg-input" placeholder="اكتب رسالة...">
+        <i class="fas fa-paper-plane" style="color:var(--accent); cursor:pointer; font-size:1.4rem" onclick="sendMsg()"></i>
     </div>
 </div>
 
 <div id="admin-panel">
-    <div style="display:flex; justify-content:space-between">
+    <div class="admin-header">
         <h2>لوحة تحكم النجم</h2>
-        <button onclick="toggleAdmin(false)" style="padding:10px; border:none; border-radius:5px">إغلاق</button>
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-card"><h4 id="stat-members">0</h4><small>أعضاء الجروب</small></div>
-        <div class="stat-card"><h4 id="stat-views">0</h4><small>زيارات الموقع</small></div>
+        <i class="fas fa-times" onclick="toggleAdmin(false)" style="font-size:1.5rem; cursor:pointer"></i>
     </div>
 
-    <h3>طلبات الانضمام</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px">
+        <div class="stat-box"><h2 id="s-members">0</h2><small>أعضاء</small></div>
+        <div class="stat-box"><h2 id="s-views">0</h2><small>زيارات</small></div>
+    </div>
+
+    <div style="background:#202c33; padding:15px; border-radius:12px; margin-bottom:25px; border:1px solid var(--gold)">
+        <h4>إعدادات بروفايل المالك</h4>
+        <input type="text" id="owner-pic-url" placeholder="رابط صورتك الشخصية الجديد">
+        <button class="auth-btn" style="background:var(--gold); color:#000; padding:8px" onclick="updateOwnerPic()">تحديث الصورة</button>
+    </div>
+
+    <h3>طلبات الانضمام (بانتظار الكود)</h3>
     <div id="admin-requests"></div>
 </div>
 
@@ -130,97 +147,115 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // تسجيل زيارة جديدة فور فتح اللينك
     db.ref('stats/views').transaction(v => (v || 0) + 1);
 
-    let session = JSON.parse(localStorage.getItem('star_session'));
-    if(session) startApp();
+    let user = JSON.parse(localStorage.getItem('star_session'));
+    if(user) launch();
 
     function showSec(id) {
         ['gate','owner-form','signup-form','wait-screen','login-form'].forEach(s => document.getElementById(s).style.display='none');
         document.getElementById(id).style.display='block';
     }
 
+    // --- نظام المالك ---
     function authOwner() {
         if(document.getElementById('owner-pass').value === "2009257mama") {
-            saveSession({ name: "النجم", role: "admin", style: "owner-style" });
+            db.ref('owner_config').once('value', s => {
+                const cfg = s.val() || { pic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+                save({ name: "النجم", role: "admin", style: "owner-badge", pic: cfg.pic });
+            });
+        } else { Swal.fire('الكود سري للمالك فقط!'); }
+    }
+
+    function updateOwnerPic() {
+        const url = document.getElementById('owner-pic-url').value;
+        if(!url) return;
+        db.ref('owner_config').update({ pic: url }).then(() => {
+            Swal.fire('تم تحديث صورتك بنجاح');
+            user.pic = url;
+            save(user);
+        });
+    }
+
+    // --- نظام المستخدمين ---
+    function submitSignup() {
+        const n = document.getElementById('reg-name').value;
+        const p = document.getElementById('reg-phone').value;
+        if(n && p) {
+            db.ref('requests').child(p).set({name: n, phone: p});
+            localStorage.setItem('my_waiting_phone', p);
+            showSec('wait-screen');
+            listenForMyCode(p);
         }
     }
 
-    function submitSignup() {
-        const name = document.getElementById('reg-name').value;
-        const phone = document.getElementById('reg-phone').value;
-        if(!name || !phone) return;
-        db.ref('requests').child(phone).set({name, phone});
-        localStorage.setItem('wait_phone', phone);
-        showSec('wait-screen');
-        watchForCode(phone);
-    }
-
-    function watchForCode(phone) {
-        db.ref('users').child(phone).on('value', s => {
+    function listenForMyCode(p) {
+        db.ref('users').child(p).on('value', s => {
             if(s.val()) {
-                document.getElementById('wait-loader').style.display = 'none';
-                document.getElementById('code-box').style.display = 'block';
+                document.getElementById('code-area').style.display = 'block';
                 document.getElementById('res-code').innerText = s.val().code;
                 localStorage.setItem('temp_user', JSON.stringify(s.val()));
             }
         });
     }
 
-    function autoEntry() { saveSession(JSON.parse(localStorage.getItem('temp_user'))); }
+    function autoLogin() { save(JSON.parse(localStorage.getItem('temp_user'))); }
 
-    function saveSession(data) { localStorage.setItem('star_session', JSON.stringify(data)); location.reload(); }
+    function save(data) { localStorage.setItem('star_session', JSON.stringify(data)); location.reload(); }
 
-    function startApp() {
+    function launch() {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'flex';
-        const head = document.getElementById('user-header');
-        head.innerText = session.name;
-        if(session.style) head.className = session.style;
+        
+        const nameSpan = document.getElementById('my-name-span');
+        const myImg = document.getElementById('my-avatar');
+        
+        nameSpan.innerText = user.name;
+        if(user.style) {
+            nameSpan.className = user.style;
+            nameSpan.innerHTML = `${user.name} <i class="fas fa-check-circle v-check"></i>`;
+        }
 
-        if(session.role === 'admin') {
-            document.getElementById('admin-icon').style.display = 'block';
-            loadAdminData();
+        if(user.pic) { myImg.src = user.pic; myImg.style.display = 'block'; }
+        if(user.role === 'admin') {
+            document.getElementById('admin-crown').style.display = 'block';
+            initAdmin();
         }
         loadChat();
     }
 
-    function loadAdminData() {
-        // تحديث الإحصائيات
-        db.ref('users').on('value', s => document.getElementById('stat-members').innerText = s.numChildren());
-        db.ref('stats/views').on('value', s => document.getElementById('stat-views').innerText = s.val());
-        
-        // تحميل الطلبات
+    function initAdmin() {
+        db.ref('users').on('value', s => document.getElementById('s-members').innerText = s.numChildren());
+        db.ref('stats/views').on('value', s => document.getElementById('s-views').innerText = s.val());
         db.ref('requests').on('value', s => {
-            const list = document.getElementById('admin-requests');
-            list.innerHTML = "";
+            const div = document.getElementById('admin-requests');
+            div.innerHTML = "";
             s.forEach(r => {
-                list.innerHTML += `<div style="background:#2a3942; padding:10px; margin-bottom:10px; border-radius:10px">
+                div.innerHTML += `<div style="background:#2a3942; padding:12px; border-radius:10px; margin-bottom:10px">
                     ${r.val().name} (${r.val().phone})
-                    <input type="text" id="code-${r.key}" placeholder="الكود">
-                    <button onclick="approve('${r.key}', '${r.val().name}')">تفعيل</button>
+                    <input type="text" id="c-${r.key}" placeholder="كود مخصص له">
+                    <button class="auth-btn" style="background:var(--accent); padding:5px" onclick="approveUser('${r.key}','${r.val().name}')">تفعيل</button>
                 </div>`;
             });
         });
     }
 
-    window.approve = (phone, name) => {
-        const code = document.getElementById('code-'+phone).value;
+    window.approveUser = (phone, name) => {
+        const code = document.getElementById('c-'+phone).value;
         if(!code) return;
         db.ref('users').child(phone).set({name, phone, code, role: 'user'}).then(() => db.ref('requests').child(phone).remove());
     }
 
     function sendMsg() {
-        const inp = document.getElementById('msg-input');
-        if(!inp.value) return;
+        const input = document.getElementById('msg-input');
+        if(!input.value) return;
         db.ref('chat').push({
-            name: session.name, 
-            body: inp.value, 
-            style: session.style || '',
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            n: user.name, 
+            b: input.value, 
+            s: user.style || '',
+            t: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         });
-        inp.value = "";
+        input.value = "";
     }
 
     function loadChat() {
@@ -229,15 +264,15 @@
             box.innerHTML = "";
             s.forEach(m => {
                 const d = m.val();
-                const isMe = d.name === session.name;
-                const isAdmin = session.role === 'admin';
+                const isMe = d.n === user.name;
+                const isAdmin = user.role === 'admin';
                 box.innerHTML += `
                     <div class="msg ${isMe?'sent':'received'}">
-                        <b class="${d.style}">${d.name}</b><br>${d.body}
-                        <div class="msg-tools">
-                            <span>${d.time}</span>
-                            ${isAdmin ? `<span onclick="editMsg('${m.key}', '${d.body}')">تعديل</span>
-                                         <span onclick="db.ref('chat').child('${m.key}').remove()">حذف</span>` : ''}
+                        <b class="${d.s}">${d.n} ${d.s ? '<i class="fas fa-check-circle v-check"></i>' : ''}</b>
+                        <div style="margin-top:5px">${d.b}</div>
+                        <div class="msg-info">
+                            <span>${d.t}</span>
+                            ${isAdmin ? `<span class="admin-tools" onclick="deleteMsg('${m.key}')">حذف</span>` : ''}
                         </div>
                     </div>`;
             });
@@ -245,18 +280,8 @@
         });
     }
 
-    window.editMsg = (key, oldBody) => {
-        Swal.fire({ title: 'تعديل الرسالة', input: 'text', inputValue: oldBody }).then(r => {
-            if(r.value) db.ref('chat').child(key).update({body: r.value});
-        });
-    }
-
-    function toggleAdmin(s) { document.getElementById('admin-panel').style.display = s ? 'block' : 'none'; }
-    
-    // Service Worker للتثبيت كتطبيق
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('data:application/javascript;base64,c2VsbC5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
-    }
+    window.deleteMsg = (key) => { db.ref('chat').child(key).remove(); }
+    function toggleAdmin(show) { document.getElementById('admin-panel').style.display = show ? 'block' : 'none'; }
 </script>
 </body>
 </html>
