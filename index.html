@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsApp Star | Final Version</title>
+    <title>WhatsApp Star | المطور</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -11,219 +11,227 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --wa-bg: #0b141a; --wa-header: #202c33; --wa-green: #25d366; --gold: #ffd700; --blue: #34b7f1; }
-        body, html { height: 100%; margin: 0; font-family: -apple-system, sans-serif; background: var(--wa-bg); color: white; overflow: hidden; }
+        :root { --wa-bg: #0b141a; --wa-header: #202c33; --green: #25d366; --gold: #ffd700; --blue: #34b7f1; }
+        body, html { height: 100%; margin: 0; font-family: sans-serif; background: var(--wa-bg); color: white; overflow: hidden; }
 
-        /* الشاشات التعريفية */
-        #auth-screen { position: fixed; inset: 0; background: #111b21; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: #222e35; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
-        .main-btn { width: 100%; padding: 12px; margin: 8px 0; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; background: #2a3942; color: white; text-align: center; outline: none; }
+        /* بوابة الدخول */
+        #auth-overlay { position: fixed; inset: 0; background: #111b21; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #222e35; padding: 30px; border-radius: 25px; width: 85%; max-width: 350px; text-align: center; }
+        .main-btn { width: 100%; padding: 14px; margin: 10px 0; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: none; background: #2a3942; color: white; text-align: center; outline: none; }
+        .hidden { display: none; }
 
-        /* واجهة واتساب */
+        /* الواجهة */
         .header { background: var(--wa-header); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .stories { display: flex; gap: 10px; padding: 15px; overflow-x: auto; background: var(--wa-bg); border-bottom: 0.5px solid #222e35; }
-        .st-circle { min-width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--wa-green); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; background: #232d36; cursor: pointer; text-align: center; overflow: hidden; }
+        .stories { display: flex; gap: 10px; padding: 15px; overflow-x: auto; border-bottom: 0.5px solid #222e35; }
+        .st-circle { min-width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; background: #202c33; font-size: 0.7rem; cursor: pointer; }
         
         .chat-list { height: calc(100vh - 180px); overflow-y: auto; }
-        .chat-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid #222e35; cursor: pointer; }
-        .avatar { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; background: #54656f; }
-
-        /* الشات */
-        #chat-window { display: none; position: fixed; inset: 0; background: var(--wa-bg); z-index: 5000; flex-direction: column; }
-        #msg-box { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 5px; }
-        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; position: relative; }
+        .chat-row { display: flex; align-items: center; padding: 15px; border-bottom: 0.5px solid #222e35; cursor: pointer; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #54656f; margin-left: 12px; }
+        
+        /* شاشة الشات */
+        #chat-ui { display: none; position: fixed; inset: 0; background: var(--wa-bg); z-index: 5000; flex-direction: column; }
+        #msg-box { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 0.95rem; }
         .me { align-self: flex-end; background: #005c4b; }
         .other { align-self: flex-start; background: #202c33; }
 
-        .input-bar { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 8px; }
-        .in-wrap { flex: 1; background: #2a3942; border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; }
-        #msg-in { flex: 1; background: transparent; border: none; color: white; padding: 8px; outline: none; }
-        
-        .star-owner { color: var(--gold) !important; font-weight: bold; }
-        .v-badge { color: var(--blue); font-size: 0.8rem; margin-right: 3px; }
-        .hidden { display: none; }
+        .gold-txt { color: var(--gold) !important; font-weight: bold; }
+        .v-badge { color: var(--blue); font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-<div id="auth-screen">
-    <div class="auth-card" id="gate-main">
-        <h2 id="json-title" style="color:var(--wa-green)">WhatsApp Star</h2>
-        <button class="main-btn" style="background:var(--wa-green)" onclick="showSec('sec-reg')">إنشاء حساب جديد</button>
-        <button class="main-btn" style="background:#2a3942; color:white" onclick="showSec('sec-login')">تسجيل دخول (بالكود)</button>
-        <p onclick="showSec('sec-owner')" style="color:#8696a0; cursor:pointer; margin-top:15px">بوابة المالك</p>
+<div id="auth-overlay">
+    <div class="auth-card" id="auth-menu">
+        <h2 id="json-app-name" style="color:var(--green)">تحميل...</h2>
+        <button class="main-btn" style="background:var(--green)" onclick="show('pane-reg')">إنشاء حساب جديد</button>
+        <button class="main-btn" style="background:#2a3942; color:white" onclick="show('pane-login')">دخول (بالكود)</button>
+        <p onclick="show('pane-owner')" style="color:#8696a0; cursor:pointer; margin-top:15px">بوابة المالك</p>
     </div>
 
-    <div class="auth-card hidden" id="sec-reg">
-        <input type="text" id="r-name" placeholder="اسمك">
-        <input type="text" id="r-phone" placeholder="رقم هاتفك">
-        <button class="main-btn" style="background:var(--wa-green)" onclick="reg()">إنشاء وحفظ الكود</button>
-        <p onclick="showSec('gate-main')" style="cursor:pointer">رجوع</p>
+    <div class="auth-card hidden" id="pane-reg">
+        <input type="text" id="reg-n" placeholder="اسمك">
+        <input type="text" id="reg-p" placeholder="رقمك">
+        <button class="main-btn" style="background:var(--green)" onclick="register()">احصل على كودك</button>
+        <p onclick="show('auth-menu')" style="cursor:pointer">رجوع</p>
     </div>
 
-    <div class="auth-card hidden" id="sec-login">
-        <input type="text" id="l-phone" placeholder="رقم الهاتف">
-        <input type="text" id="l-code" placeholder="الكود">
-        <button class="main-btn" style="background:var(--wa-green)" onclick="login()">دخول</button>
-        <p onclick="showSec('gate-main')" style="cursor:pointer">رجوع</p>
+    <div class="auth-card hidden" id="pane-login">
+        <input type="text" id="log-p" placeholder="الرقم">
+        <input type="text" id="log-c" placeholder="الكود">
+        <button class="main-btn" style="background:var(--green)" onclick="login()">دخول</button>
+        <p onclick="show('auth-menu')" style="cursor:pointer">رجوع</p>
     </div>
 
-    <div class="auth-card hidden" id="sec-owner">
-        <input type="password" id="o-pass" placeholder="كلمة السر">
-        <button class="main-btn" style="background:var(--gold)" onclick="owner()">دخول النجم</button>
-        <p onclick="showSec('gate-main')" style="cursor:pointer">رجوع</p>
+    <div class="auth-card hidden" id="pane-owner">
+        <input type="password" id="own-pass" placeholder="كلمة سر النجم">
+        <button class="main-btn" style="background:var(--gold)" onclick="ownerAuth()">فتح الإدارة</button>
+        <p onclick="show('auth-menu')" style="cursor:pointer">رجوع</p>
     </div>
 </div>
 
-<div id="app-main" style="display:none; flex-direction:column; height:100vh;">
+<div id="main-app" style="display:none; flex-direction:column; height:100vh;">
     <div class="header">
-        <b id="nav-name">WhatsApp</b>
-        <div style="display:flex; gap:20px"><i class="fas fa-search"></i><i class="fas fa-ellipsis-v"></i></div>
+        <b id="json-header-name">WhatsApp</b>
+        <i class="fas fa-ellipsis-v"></i>
     </div>
-
-    <div class="stories" id="st-list">
-        <div class="st-circle" onclick="addSt()" style="border-style:dashed">+<br>حالة</div>
+    <div class="stories" id="status-area">
+        <div class="st-circle" onclick="addStatus()" style="border: 1px dashed #8696a0">+<br>حالة</div>
     </div>
-
     <div class="chat-list">
-        <div id="pinned-chat"></div>
-        <div id="users-list"></div>
+        <div id="pinned-area"></div>
+        <div id="others-area"></div>
     </div>
 </div>
 
-<div id="chat-window">
+<div id="chat-ui">
     <div class="header">
         <div style="display:flex; align-items:center; gap:10px">
             <i class="fas fa-arrow-right" onclick="location.reload()"></i>
-            <b id="chat-title"></b>
+            <b id="active-chat-title"></b>
         </div>
         <div style="display:flex; gap:20px"><i class="fas fa-video"></i><i class="fas fa-phone"></i></div>
     </div>
     <div id="msg-box"></div>
-    <div class="input-bar">
-        <i class="fas fa-microphone" id="mic" onclick="rec()"></i>
-        <div class="in-wrap"><input type="text" id="msg-in" placeholder="رسالة"></div>
-        <button onclick="send()" style="border:none; background:var(--wa-green); width:40px; height:40px; border-radius:50%"><i class="fas fa-paper-plane"></i></button>
+    <div style="background:#202c33; padding:10px; display:flex; align-items:center; gap:10px">
+        <i class="fas fa-microphone" id="mic-btn" onclick="handleRecord()"></i>
+        <input type="text" id="msg-input" placeholder="رسالة" style="flex:1; background:#2a3942; border:none; padding:10px; border-radius:20px; color:white;">
+        <button onclick="sendMsg()" style="background:var(--green); border:none; width:40px; height:40px; border-radius:50%"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
 <script>
+    // ربط الفايربيس (ضع الرابط الخاص بك)
     const firebaseConfig = { databaseURL: "https://groop-27edc-default-rtdb.europe-west1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let user = JSON.parse(localStorage.getItem('wa_final_v1')), appData = {}, curPath = "", recorder, chunks = [];
+    let appData = {}, user = JSON.parse(localStorage.getItem('star_v6')), curPath = "", recorder, chunks = [];
 
-    async function start() {
+    // --- الربط مع ملف JSON ---
+    async function loadJSON() {
         try {
-            const res = await fetch('data.json'); appData = await res.json();
-            document.getElementById('json-title').innerText = appData.settings.appName;
-            document.getElementById('nav-name').innerText = appData.settings.appName;
+            const res = await fetch('data.json');
+            appData = await res.json();
+            document.getElementById('json-app-name').innerText = appData.settings.appName;
+            document.getElementById('json-header-name').innerText = appData.settings.appName;
             if(user) launch();
-        } catch(e) { Swal.fire('ارفع ملف data.json'); }
+        } catch(e) { Swal.fire('تأكد من وجود ملف data.json بجانب ملف الـ HTML'); }
     }
 
-    function showSec(id) { 
+    function show(id) {
         document.querySelectorAll('.auth-card').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
-    function reg() {
-        const n = document.getElementById('r-name').value, p = document.getElementById('r-phone').value;
+    function register() {
+        const n = document.getElementById('reg-n').value, p = document.getElementById('reg-p').value;
         const c = Math.floor(100000 + Math.random() * 900000).toString();
         if(n && p) db.ref('users').child(p).set({name:n, phone:p, code:c, role:'user'}).then(() => {
-            Swal.fire('كودك هو: ' + c); showSec('sec-login');
+            Swal.fire('تم! كودك هو: ' + c); show('pane-login');
         });
     }
 
     function login() {
-        const p = document.getElementById('l-phone').value, c = document.getElementById('l-code').value;
+        const p = document.getElementById('log-p').value, c = document.getElementById('log-c').value;
         db.ref('users').child(p).once('value', s => {
-            if(s.val() && s.val().code === c) save(s.val()); else Swal.fire('خطأ');
+            if(s.val() && s.val().code === c) saveSession(s.val());
+            else Swal.fire('بيانات خطأ');
         });
     }
 
-    function owner() {
-        if(document.getElementById('o-pass').value === "2009257mama") save({name:"النجم", role:"admin", phone:"admin", style:"star-owner"});
+    function ownerAuth() {
+        if(document.getElementById('own-pass').value === "2009257mama") {
+            saveSession({name: "النجم", role: "admin", phone: "admin", style: "gold-txt"});
+        }
     }
 
-    function save(d) { localStorage.setItem('wa_final_v1', JSON.stringify(d)); location.reload(); }
+    function saveSession(d) { localStorage.setItem('star_v6', JSON.stringify(d)); location.reload(); }
 
     function launch() {
-        document.getElementById('auth-screen').style.display='none';
-        document.getElementById('app-main').style.display='flex';
-        renderPinned(); loadUsers(); loadSt();
+        document.getElementById('auth-overlay').style.display='none';
+        document.getElementById('main-app').style.display='flex';
+        renderPinned(); loadUsers(); loadStatuses();
     }
 
     function renderPinned() {
-        const p = appData.pinned;
-        document.getElementById('pinned-chat').innerHTML = `
-            <div class="chat-item" onclick="openChat('public', '${p.groupName}')">
+        const pin = appData.pinnedGroup;
+        document.getElementById('pinned-area').innerHTML = `
+            <div class="chat-row" onclick="openChat('public', '${pin.name}')">
                 <div class="avatar" style="border:2px solid var(--gold)"></div>
-                <div style="flex:1"><b class="star-owner">${p.groupName} <i class="fas fa-check-circle v-badge"></i></b><br><small>${p.desc}</small></div>
+                <div style="flex:1">
+                    <b class="${pin.isVerified?'gold-txt':''}">${pin.name} ${pin.isVerified?'<i class="fas fa-check-circle v-badge"></i>':''}</b><br>
+                    <small style="color:#8696a0">${pin.status}</small>
+                </div>
             </div>`;
     }
 
     function openChat(path, name) {
-        curPath = path === 'public' ? 'msgs' : 'private/'+path;
-        document.getElementById('chat-title').innerText = name;
-        document.getElementById('chat-window').style.display='flex';
+        curPath = path === 'public' ? 'msgs' : 'private/' + path;
+        document.getElementById('active-chat-title').innerText = name;
+        document.getElementById('chat-ui').style.display = 'flex';
         db.ref(curPath).on('value', s => {
             const box = document.getElementById('msg-box'); box.innerHTML = "";
             s.forEach(m => {
                 const d = m.val();
-                let content = d.type === 'voice' ? `<audio controls src="${d.b}" style="width:180px"></audio>` : d.b;
-                box.innerHTML += `<div class="bubble ${d.n===user.name?'me':'other'}"><small class="${d.s}">${d.n}</small><br>${content}</div>`;
+                let body = d.type === 'audio' ? `<audio src="${d.b}" controls style="width:180px"></audio>` : d.b;
+                box.innerHTML += `<div class="bubble ${d.n===user.name?'me':'other'}"><small class="${d.s}">${d.n}</small><br>${body}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
     }
 
-    function send() {
-        const i = document.getElementById('msg-in'); if(!i.value) return;
-        db.ref(curPath).push({n:user.name, b:i.value, s:user.style||"", type:'text'}); i.value="";
+    function sendMsg() {
+        const i = document.getElementById('msg-input'); if(!i.value) return;
+        db.ref(curPath).push({n:user.name, b:i.value, type:'text', s:user.style||""}); i.value="";
     }
 
-    async function rec() {
-        const mic = document.getElementById('mic');
+    async function handleRecord() {
+        const btn = document.getElementById('mic-btn');
         if(!recorder || recorder.state === 'inactive') {
             const stream = await navigator.mediaDevices.getUserMedia({audio:true});
             recorder = new MediaRecorder(stream);
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const reader = new FileReader(); reader.readAsDataURL(new Blob(chunks));
-                reader.onloadend = () => db.ref(curPath).push({n:user.name, b:reader.result, type:'voice', s:user.style||""});
+                reader.onloadend = () => db.ref(curPath).push({n:user.name, b:reader.result, type:'audio', s:user.style||""});
                 chunks = [];
             };
-            recorder.start(); mic.style.color = 'red';
-        } else { recorder.stop(); mic.style.color = 'white'; }
+            recorder.start(); btn.style.color = 'red';
+        } else { recorder.stop(); btn.style.color = 'white'; }
     }
 
-    function addSt() {
-        Swal.fire({title:'اكتب حالة', input:'text'}).then(r => { if(r.value) db.ref('st').push({n:user.name, b:r.value}); });
+    function addStatus() {
+        Swal.fire({title: 'اكتب حالة', input: 'text'}).then(r => {
+            if(r.value) db.ref('status').push({n:user.name, b:r.value});
+        });
     }
 
-    function loadSt() {
-        db.ref('st').on('value', s => {
-            const list = document.getElementById('st-list'); list.innerHTML = `<div class="st-circle" onclick="addSt()">+<br>حالة</div>`;
-            s.forEach(st => { list.innerHTML += `<div class="st-circle" onclick="Swal.fire('${st.val().b}')">${st.val().n}</div>`; });
+    function loadStatuses() {
+        db.ref('status').on('value', s => {
+            const area = document.getElementById('status-area');
+            area.innerHTML = `<div class="st-circle" onclick="addStatus()" style="border: 1px dashed #8696a0">+<br>حالة</div>`;
+            s.forEach(st => {
+                area.innerHTML += `<div class="st-circle" onclick="Swal.fire('حالة ${st.val().n}', '${st.val().b}')"><b>${st.val().n}</b></div>`;
+            });
         });
     }
 
     function loadUsers() {
         db.ref('users').on('value', s => {
-            const list = document.getElementById('users-list'); list.innerHTML = "";
+            const area = document.getElementById('others-area'); area.innerHTML = "";
             s.forEach(u => {
                 if(u.val().phone !== user.phone) {
                     const room = [user.phone, u.val().phone].sort().join("_");
-                    list.innerHTML += `<div class="chat-item" onclick="openChat('${room}', '${u.val().name}')"><div class="avatar"></div><b>${u.val().name}</b></div>`;
+                    area.innerHTML += `<div class="chat-row" onclick="openChat('${room}', '${u.val().name}')"><div class="avatar"></div><b>${u.val().name}</b></div>`;
                 }
             });
         });
     }
 
-    start();
+    loadJSON();
 </script>
 </body>
 </html>
