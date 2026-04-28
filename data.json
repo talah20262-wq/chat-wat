@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "appName": "WhatsApp Star Pro",
+    "ownerName": "النجم",
+    "mainColor": "#25d366",
+    "goldColor": "#ffd700",
+    "verifyIcon": "fas fa-check-circle"
+  },
+  "permissions": {
+    "allowVoiceNotes": true,
+    "allowVideoCalls": true,
+    "allowTextStories": true
+  },
+  "pinnedGroup": {
+    "name": "جروب النجم الملكي",
+    "description": "المقر الرسمي للادارة",
+    "isVerified": true
+  }
+}
