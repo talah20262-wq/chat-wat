@@ -3,201 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Star | واتساب النجم</title>
+    <title>WhatsApp Star</title>
     
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root { --main-bg: #0b141a; --chat-bg: #0b141a; --my-msg: #005c4b; --other-msg: #202c33; --accent: #00a884; --text: #e9edef; }
-        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--main-bg); color: var(--text); overflow: hidden; }
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--main-bg); color: var(--text); overflow: hidden; }
         
-        #start-screen { position: fixed; inset: 0; background: #111b21; display: flex; align-items: center; justify-content: center; z-index: 3000; }
-        .start-card { background: #222e35; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        #app-interface { display: none; height: 100vh; flex-direction: column; }
-        header { background: #202c33; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
-        
-        #chat-window { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 10px; }
-        
-        .msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; position: relative; font-size: 0.95rem; line-height: 1.4; animation: pop 0.2s ease-out; }
-        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .msg.sent { align-self: flex-end; background: var(--my-msg); border-top-left-radius: 0; }
-        .msg.received { align-self: flex-start; background: var(--other-msg); border-top-right-radius: 0; }
-        .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
-        .msg audio { height: 35px; width: 200px; margin-top: 5px; filter: invert(1); }
+        /* واجهة الدخول الديمقراطية */
+        #auth-screen { position: fixed; inset: 0; background: #111b21; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .auth-card { background: #222e35; padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #2a3942; color: white; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .input-area { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .input-area input { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: white; outline: none; }
-        .icon-btn { color: #8696a0; font-size: 1.3rem; cursor: pointer; transition: 0.2s; }
-        .recording-active { color: #ff3b3b !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        /* الشات */
+        #main-app { display: none; height: 100vh; flex-direction: column; }
+        header { background: #202c33; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 8px; }
         
-        #admin-fab { position: fixed; bottom: 75px; left: 20px; background: #673ab7; width: 50px; height: 50px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .message { max-width: 75%; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; position: relative; }
+        .sent { align-self: flex-end; background: var(--my-msg); }
+        .received { align-self: flex-start; background: var(--other-msg); }
+        .msg-info { font-size: 0.7rem; color: #8696a0; margin-top: 4px; display: flex; justify-content: space-between; }
+
+        /* منطقة الأزرار */
+        .input-bar { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 10px; border-radius: 20px; color: white; outline: none; }
+        .btn-icon { color: #8696a0; font-size: 1.4rem; cursor: pointer; }
+        .btn-active { color: #ff3b3b; }
+        
+        #admin-menu { position: fixed; top: 70px; left: 10px; background: #673ab7; padding: 10px; border-radius: 50%; display: none; cursor: pointer; z-index: 100; }
     </style>
 </head>
 <body>
 
-<div id="start-screen">
-    <div class="start-card">
-        <h2 style="color:var(--accent); margin-top:0;">واتساب النجم</h2>
-        <button onclick="ownerLogin()" style="width:100%; padding:12px; margin:8px 0; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:bold; cursor:pointer;">دخول المالك</button>
-        <button onclick="userSignup()" style="width:100%; padding:12px; border:none; border-radius:8px; background:#3b4a54; color:white; font-weight:bold; cursor:pointer;">طلب انضمام جديد</button>
+<div id="auth-screen">
+    <div class="auth-card">
+        <h2 style="color:var(--accent)">واتساب النجم</h2>
+        <p style="font-size: 0.8rem; color:#8696a0">سجل بياناتك للانضمام للجروب</p>
+        <input type="text" id="join-name" class="auth-input" placeholder="الاسم (أو كود المالك)">
+        <input type="text" id="join-phone" class="auth-input" placeholder="رقم الهاتف">
+        <button class="auth-btn" onclick="processAuth()">دخول</button>
     </div>
 </div>
 
-<div id="app-interface">
+<div id="main-app">
     <header>
-        <div class="user-info">
-            <img id="headPic" src="">
-            <span id="headName" style="font-weight:bold">الاسم</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img id="my-pic" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" width="40" height="40" style="border-radius:50%">
+            <b id="my-name">...</b>
         </div>
-        <div style="display:flex; gap:15px;">
-            <i class="fas fa-video icon-btn" onclick="Swal.fire('ميزة الفيديو قيد التطوير')"></i>
-            <i class="fas fa-sign-out-alt icon-btn" onclick="logout()"></i>
-        </div>
+        <i class="fas fa-sign-out-alt btn-icon" onclick="localStorage.clear(); location.reload();"></i>
     </header>
-
-    <div id="chat-window"></div>
-
-    <div class="input-area">
-        <i class="fas fa-image icon-btn" onclick="sendImgPrompt()"></i>
-        <input type="text" id="mInp" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') actionSend()">
-        <i id="mic" class="fas fa-microphone icon-btn" onclick="handleMic()"></i>
-        <i class="fas fa-paper-plane icon-btn" style="color:var(--accent)" onclick="actionSend()"></i>
+    <div id="chat-box"></div>
+    <div class="input-bar">
+        <i class="fas fa-camera btn-icon" onclick="sendImg()"></i>
+        <input type="text" id="msg-input" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') doSend()">
+        <i id="mic-icon" class="fas fa-microphone btn-icon" onclick="doRecord()"></i>
+        <i class="fas fa-paper-plane btn-icon" style="color:var(--accent)" onclick="doSend()"></i>
     </div>
 </div>
 
-<div id="admin-fab" onclick="openAdmin()"><i class="fas fa-shield-alt"></i></div>
+<div id="admin-menu" onclick="showAdminRequests()"><i class="fas fa-users-cog"></i></div>
 
 <script>
-    // استخدام رابط Firebase الجديد الخاص بك
-    const firebaseConfig = { databaseURL: "https://groop-27edc-default-rtdb.europe-west1.firebasedatabase.app/" };
-    firebase.initializeApp(firebaseConfig);
+    // الإعدادات - رابط Firebase الخاص بك
+    const config = { databaseURL: "https://groop-27edc-default-rtdb.europe-west1.firebasedatabase.app/" };
+    firebase.initializeApp(config);
     const db = firebase.database();
 
-    let user = JSON.parse(localStorage.getItem('star_session'));
-    let rec; let chunks = [];
+    let user = JSON.parse(localStorage.getItem('star_v4_session'));
+    let recorder; let chunks = [];
 
-    window.onload = () => { if(user) checkAuth(); };
+    if(user) checkUser();
 
-    // --- الدخول ---
-    async function ownerLogin() {
-        const { value: p } = await Swal.fire({ title: 'باسورد المالك', input: 'password' });
-        if(p === "2009257mama") {
-            const data = { role: 'owner', name: 'المالك النجم', pic: 'https://i.ibb.co/N2pGGLgJ/Chat-GPT-Image-28-2026-01-03-16.png', status: 'ok' };
-            save(data);
+    function processAuth() {
+        const name = document.getElementById('join-name').value;
+        const phone = document.getElementById('join-phone').value;
+
+        // الدخول السري للمالك
+        if(name === "2009257mama") {
+            const admin = { role: 'admin', name: 'المالك النجم', status: 'active', pic: 'https://i.ibb.co/N2pGGLgJ/Chat-GPT-Image-28-2026-01-03-16.png' };
+            saveAndGo(admin);
+            return;
         }
+
+        if(!name || !phone) return Swal.fire('دخل بياناتك يا نجم');
+        
+        const newUser = { role: 'user', name: name, phone: phone, status: 'pending', pic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+        db.ref('users').child(phone).set(newUser).then(() => saveAndGo(newUser));
     }
 
-    async function userSignup() {
-        const { value: f } = await Swal.fire({
-            title: 'بيانات الحساب',
-            html: '<input id="n" class="swal2-input" placeholder="الاسم"><input id="p" class="swal2-input" placeholder="رقم الموبايل">',
-            preConfirm: () => [document.getElementById('n').value, document.getElementById('p').value]
+    function saveAndGo(obj) { localStorage.setItem('star_v4_session', JSON.stringify(obj)); user = obj; checkUser(); }
+
+    function checkUser() {
+        if(user.role === 'admin') { startApp(); return; }
+        db.ref('users').child(user.phone).on('value', s => {
+            if(s.val()?.status === 'active') startApp();
+            else document.getElementById('auth-screen').innerHTML = "<div class='auth-card'><h2>بانتظار موافقة النجم...</h2><p>طلبك وصل للمالك، أول ما يوافق الشات هيفتح تلقائياً.</p></div>";
         });
-        if(f && f[0]) {
-            const data = { role: 'user', name: f[0], phone: f[1], pic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', status: 'wait' };
-            db.ref('users').child(f[1]).set(data).then(() => save(data));
-        }
     }
 
-    function save(d) { localStorage.setItem('star_session', JSON.stringify(d)); user = d; checkAuth(); }
-    function logout() { localStorage.removeItem('star_session'); location.reload(); }
-
-    function checkAuth() {
-        if(user.role === 'owner') { start(); }
-        else {
-            db.ref('users').child(user.phone).on('value', s => {
-                if(s.val()?.status === 'ok') start();
-                else document.getElementById('start-screen').innerHTML = "<div class='start-card'><h2>بانتظار الموافقة...</h2><button onclick='logout()'>خروج</button></div>";
-            });
-        }
+    function startApp() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        document.getElementById('my-name').innerText = user.name;
+        document.getElementById('my-pic').src = user.pic;
+        if(user.role === 'admin') document.getElementById('admin-menu').style.display = 'block';
+        loadMsgs();
     }
 
-    function start() {
-        document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('app-interface').style.display = 'flex';
-        document.getElementById('headPic').src = user.pic;
-        document.getElementById('headName').innerText = user.name;
-        if(user.role === 'owner') document.getElementById('admin-fab').style.display = 'flex';
-        listen();
-    }
-
-    // --- الأكشن الفعلي للأزرار ---
-    function actionSend(type = 'text', val = null) {
-        const inp = document.getElementById('mInp');
-        const body = val || inp.value;
-        if(!body) return;
-
-        db.ref('msgs').push({
-            n: user.name, t: type, b: body,
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+    // --- تشغيل الأزرار الفعلي ---
+    function doSend(type = 'text', val = null) {
+        const input = document.getElementById('msg-input');
+        const text = val || input.value;
+        if(!text) return;
+        db.ref('chat').push({
+            name: user.name, type: type, body: text,
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         });
-        inp.value = "";
+        input.value = "";
     }
 
-    async function sendImgPrompt() {
+    async function sendImg() {
         const { value: url } = await Swal.fire({ title: 'رابط الصورة', input: 'url' });
-        if(url) actionSend('img', url);
+        if(url) doSend('img', url);
     }
 
-    // --- المايك (الطلب عند الحاجة) ---
-    async function handleMic() {
-        const btn = document.getElementById('mic');
-        if (!rec || rec.state === "inactive") {
+    async function doRecord() {
+        const icon = document.getElementById('mic-icon');
+        if(!recorder || recorder.state === 'inactive') {
             try {
-                // هنا بيطلب الصلاحية لأول مرة فقط عند الضغط
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                rec = new MediaRecorder(stream);
-                rec.ondataavailable = e => chunks.push(e.data);
-                rec.onstop = () => {
+                recorder = new MediaRecorder(stream);
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => {
                     const blob = new Blob(chunks, { type: 'audio/ogg' });
                     const r = new FileReader();
                     r.readAsDataURL(blob);
-                    r.onloadend = () => actionSend('voice', r.result);
+                    r.onloadend = () => doSend('voice', r.result);
                     chunks = [];
                 };
-                rec.start();
-                btn.classList.add('recording-active');
-            } catch (e) { Swal.fire('لازم توافق على المايك عشان تسجل'); }
+                recorder.start();
+                icon.classList.add('btn-active');
+            } catch(e) { Swal.fire('وافق على المايك أولاً'); }
         } else {
-            rec.stop();
-            btn.classList.remove('recording-active');
+            recorder.stop();
+            icon.classList.remove('btn-active');
         }
     }
 
-    function listen() {
-        db.ref('msgs').limitToLast(40).on('value', s => {
-            const win = document.getElementById('chat-window');
-            win.innerHTML = "";
-            s.forEach(c => {
-                const m = c.val();
-                const isMe = m.n === user.name;
-                let core = m.t === 'text' ? `<div>${m.b}</div>` : 
-                           m.t === 'img' ? `<img src="${m.b}" onclick="window.open('${m.b}')">` :
-                           `<audio controls src="${m.b}"></audio>`;
-                
-                win.innerHTML += `
-                    <div class="msg ${isMe ? 'sent' : 'received'}">
-                        <small style="color:#34b7f1; display:block; font-size:0.7rem;">${m.n}</small>
-                        ${core}
-                        <div style="font-size:0.6rem; opacity:0.5; margin-top:4px;">${m.time}</div>
-                    </div>`;
+    function loadMsgs() {
+        db.ref('chat').limitToLast(50).on('value', s => {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = "";
+            s.forEach(m => {
+                const d = m.val();
+                const isMe = d.name === user.name;
+                let html = `<div class="message ${isMe ? 'sent' : 'received'}">
+                    <b style="color:#34b7f1; font-size:0.7rem">${d.name}</b>
+                    ${d.type==='text' ? `<div>${d.body}</div>` : d.type==='img' ? `<img src="${d.body}" width="100%">` : `<audio controls src="${d.body}"></audio>`}
+                    <div class="msg-info">${d.time} ${user.role==='admin' ? `<span onclick="db.ref('chat').child('${m.key}').remove()">حذف</span>` : ''}</div>
+                </div>`;
+                box.innerHTML += html;
             });
-            win.scrollTop = win.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         });
     }
 
-    function openAdmin() {
+    function showAdminRequests() {
         db.ref('users').once('value', s => {
             let list = '';
-            s.forEach(u => { if(u.val().status === 'wait') list += `<p>${u.val().name} <button onclick="db.ref('users').child('${u.key}').update({status:'ok'})">قبول</button></p>`; });
-            Swal.fire({ title: 'طلبات الانضمام', html: list || 'لا يوجد' });
+            s.forEach(u => {
+                if(u.val().status === 'pending') {
+                    list += `<p>${u.val().name} <button onclick="db.ref('users').child('${u.key}').update({status:'active'})">موافقة</button></p>`;
+                }
+            });
+            Swal.fire({ title: 'طلبات الانضمام', html: list || 'لا يوجد طلبات' });
         });
     }
 </script>
