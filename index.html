@@ -14,215 +14,192 @@
         :root { --main-bg: #0b141a; --chat-bg: #0b141a; --my-msg: #005c4b; --other-msg: #202c33; --accent: #00a884; --text: #e9edef; }
         body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--main-bg); color: var(--text); overflow: hidden; }
         
-        /* شاشة الترحيب والخيارات */
         #start-screen { position: fixed; inset: 0; background: #111b21; display: flex; align-items: center; justify-content: center; z-index: 3000; }
-        .start-card { background: #222e35; padding: 40px; border-radius: 25px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        .start-card img { width: 100px; margin-bottom: 20px; }
-        .btn-choice { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
-        .btn-owner { background: var(--accent); color: white; }
-        .btn-user { background: #3b4a54; color: white; }
-
-        /* واجهة الشات */
+        .start-card { background: #222e35; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
         #app-interface { display: none; height: 100vh; flex-direction: column; }
-        header { background: #202c33; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .user-info img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        header { background: #202c33; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
         
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 12px; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 10px; }
         
-        .msg { max-width: 80%; padding: 10px; border-radius: 12px; position: relative; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; position: relative; font-size: 0.95rem; line-height: 1.4; animation: pop 0.2s ease-out; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .msg.sent { align-self: flex-end; background: var(--my-msg); border-top-left-radius: 0; }
         .msg.received { align-self: flex-start; background: var(--other-msg); border-top-right-radius: 0; }
-        .msg .sender-name { font-size: 0.8rem; font-weight: bold; color: #34b7f1; margin-bottom: 5px; display: block; }
-        .msg .delete-btn { color: #ff4d4d; font-size: 0.8rem; cursor: pointer; margin-right: 10px; }
+        .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
+        .msg audio { height: 35px; width: 200px; margin-top: 5px; filter: invert(1); }
 
-        /* شريط الكتابة */
-        .input-area { background: #202c33; padding: 12px; display: flex; align-items: center; gap: 12px; }
-        .input-area input { flex: 1; background: #2a3942; border: none; padding: 12px 20px; border-radius: 25px; color: white; font-size: 1rem; outline: none; }
-        .icon-btn { color: #8696a0; font-size: 1.5rem; cursor: pointer; }
-        .send-btn { color: var(--accent); font-size: 1.8rem; cursor: pointer; }
-
-        /* لوحة التحكم */
-        #admin-panel-btn { position: fixed; bottom: 85px; left: 20px; background: #673ab7; width: 55px; height: 55px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; }
+        .input-area { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .input-area input { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: white; outline: none; }
+        .icon-btn { color: #8696a0; font-size: 1.3rem; cursor: pointer; transition: 0.2s; }
+        .recording-active { color: #ff3b3b !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        
+        #admin-fab { position: fixed; bottom: 75px; left: 20px; background: #673ab7; width: 50px; height: 50px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
 
 <div id="start-screen">
     <div class="start-card">
-        <img src="https://cdn-icons-png.flaticon.com/512/3536/3536445.png" alt="Logo">
-        <h2 style="color:white; margin-bottom:30px;">مرحباً بك في واتساب النجم</h2>
-        <button class="btn-choice btn-owner" onclick="handleOwnerLogin()">دخول المالك</button>
-        <button class="btn-choice btn-user" onclick="handleUserSignup()">إنشاء حساب جديد</button>
+        <h2 style="color:var(--accent); margin-top:0;">واتساب النجم</h2>
+        <button onclick="ownerLogin()" style="width:100%; padding:12px; margin:8px 0; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:bold; cursor:pointer;">دخول المالك</button>
+        <button onclick="userSignup()" style="width:100%; padding:12px; border:none; border-radius:8px; background:#3b4a54; color:white; font-weight:bold; cursor:pointer;">طلب انضمام جديد</button>
     </div>
 </div>
 
 <div id="app-interface">
     <header>
         <div class="user-info">
-            <img id="myAvatar" src="">
-            <div>
-                <div id="myNameDisplay" style="font-weight:bold;">الاسم</div>
-                <div style="font-size:0.75rem; color:var(--accent);">متصل الآن</div>
-            </div>
+            <img id="headPic" src="">
+            <span id="headName" style="font-weight:bold">الاسم</span>
         </div>
-        <div style="display:flex; gap:20px; color:#8696a0;">
-            <i class="fas fa-video"></i>
-            <i class="fas fa-phone-alt"></i>
-            <i class="fas fa-sign-out-alt" onclick="logout()"></i>
+        <div style="display:flex; gap:15px;">
+            <i class="fas fa-video icon-btn" onclick="Swal.fire('ميزة الفيديو قيد التطوير')"></i>
+            <i class="fas fa-sign-out-alt icon-btn" onclick="logout()"></i>
         </div>
     </header>
 
     <div id="chat-window"></div>
 
     <div class="input-area">
-        <i class="fas fa-plus icon-btn"></i>
-        <input type="text" id="msgInput" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') sendMsg()">
-        <i id="mic-btn" class="fas fa-microphone icon-btn" onclick="toggleRecord()"></i>
-        <i class="fas fa-paper-plane send-btn" onclick="sendMsg()"></i>
+        <i class="fas fa-image icon-btn" onclick="sendImgPrompt()"></i>
+        <input type="text" id="mInp" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') actionSend()">
+        <i id="mic" class="fas fa-microphone icon-btn" onclick="handleMic()"></i>
+        <i class="fas fa-paper-plane icon-btn" style="color:var(--accent)" onclick="actionSend()"></i>
     </div>
 </div>
 
-<div id="admin-panel-btn" onclick="openAdminPanel()"><i class="fas fa-user-shield"></i></div>
+<div id="admin-fab" onclick="openAdmin()"><i class="fas fa-shield-alt"></i></div>
 
 <script>
+    // استخدام رابط Firebase الجديد الخاص بك
     const firebaseConfig = { databaseURL: "https://groop-27edc-default-rtdb.europe-west1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentUser = JSON.parse(localStorage.getItem('star_user_v2'));
-    let mediaRecorder;
-    let audioChunks = [];
+    let user = JSON.parse(localStorage.getItem('star_session'));
+    let rec; let chunks = [];
 
-    window.onload = () => { if(currentUser) validateAccess(); };
+    window.onload = () => { if(user) checkAuth(); };
 
-    // --- نظام الدخول المنظم ---
-    async function handleOwnerLogin() {
-        const { value: pass } = await Swal.fire({ title: 'أدخل كلمة سر المالك', input: 'password' });
-        if(pass === "2009257mama") {
-            let adminData = JSON.parse(localStorage.getItem('star_admin_profile'));
-            if(!adminData) {
-                const { value: info } = await Swal.fire({
-                    title: 'إعداد بروفايل المالك',
-                    html: '<input id="sw-n" class="swal2-input" placeholder="اسمك المستعار"><input id="sw-l" class="swal2-input" placeholder="رابط صورتك">',
-                    preConfirm: () => [document.getElementById('sw-n').value, document.getElementById('sw-l').value]
-                });
-                adminData = { role: 'owner', name: info[0] || 'المالك', pic: info[1] || 'https://cdn-icons-png.flaticon.com/512/4712/4712139.png', status: 'approved' };
-                localStorage.setItem('star_admin_profile', JSON.stringify(adminData));
-            }
-            login(adminData);
-        } else if(pass) { Swal.fire('خطأ', 'كلمة السر غير صحيحة', 'error'); }
+    // --- الدخول ---
+    async function ownerLogin() {
+        const { value: p } = await Swal.fire({ title: 'باسورد المالك', input: 'password' });
+        if(p === "2009257mama") {
+            const data = { role: 'owner', name: 'المالك النجم', pic: 'https://i.ibb.co/N2pGGLgJ/Chat-GPT-Image-28-2026-01-03-16.png', status: 'ok' };
+            save(data);
+        }
     }
 
-    async function handleUserSignup() {
-        const { value: info } = await Swal.fire({
-            title: 'إنشاء حساب جديد',
-            html: '<input id="u-n" class="swal2-input" placeholder="اسمك"><input id="u-p" class="swal2-input" placeholder="رقم الموبايل"><input id="u-l" class="swal2-input" placeholder="رابط صورتك">',
-            preConfirm: () => [document.getElementById('u-n').value, document.getElementById('u-p').value, document.getElementById('u-l').value]
+    async function userSignup() {
+        const { value: f } = await Swal.fire({
+            title: 'بيانات الحساب',
+            html: '<input id="n" class="swal2-input" placeholder="الاسم"><input id="p" class="swal2-input" placeholder="رقم الموبايل">',
+            preConfirm: () => [document.getElementById('n').value, document.getElementById('p').value]
         });
-        if(info && info[0] && info[1]) {
-            const userData = { role: 'user', name: info[0], phone: info[1], pic: info[2] || 'https://cdn-icons-png.flaticon.com/512/149/149071.png', status: 'pending' };
-            db.ref('users').child(info[1]).set(userData).then(() => {
-                login(userData);
+        if(f && f[0]) {
+            const data = { role: 'user', name: f[0], phone: f[1], pic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', status: 'wait' };
+            db.ref('users').child(f[1]).set(data).then(() => save(data));
+        }
+    }
+
+    function save(d) { localStorage.setItem('star_session', JSON.stringify(d)); user = d; checkAuth(); }
+    function logout() { localStorage.removeItem('star_session'); location.reload(); }
+
+    function checkAuth() {
+        if(user.role === 'owner') { start(); }
+        else {
+            db.ref('users').child(user.phone).on('value', s => {
+                if(s.val()?.status === 'ok') start();
+                else document.getElementById('start-screen').innerHTML = "<div class='start-card'><h2>بانتظار الموافقة...</h2><button onclick='logout()'>خروج</button></div>";
             });
         }
     }
 
-    function login(data) {
-        localStorage.setItem('star_user_v2', JSON.stringify(data));
-        currentUser = data;
-        validateAccess();
-    }
-
-    function validateAccess() {
-        if(currentUser.role === 'owner') { launch(); return; }
-        db.ref('users').child(currentUser.phone).on('value', s => {
-            const d = s.val();
-            if(d && d.status === 'approved') launch();
-            else { 
-                document.getElementById('start-screen').style.display = 'flex';
-                document.querySelector('.start-card').innerHTML = `<h2>قيد الانتظار...</h2><p>طلبك عند المالك، استنى يوافق عليك.</p><button onclick="logout()" class="btn-choice btn-user">خروج</button>`;
-            }
-        });
-    }
-
-    function launch() {
+    function start() {
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('app-interface').style.display = 'flex';
-        document.getElementById('myAvatar').src = currentUser.pic;
-        document.getElementById('myNameDisplay').innerText = currentUser.name;
-        if(currentUser.role === 'owner') document.getElementById('admin-panel-btn').style.display = 'flex';
-        loadMessages();
+        document.getElementById('headPic').src = user.pic;
+        document.getElementById('headName').innerText = user.name;
+        if(user.role === 'owner') document.getElementById('admin-fab').style.display = 'flex';
+        listen();
     }
 
-    function logout() { localStorage.removeItem('star_user_v2'); location.reload(); }
+    // --- الأكشن الفعلي للأزرار ---
+    function actionSend(type = 'text', val = null) {
+        const inp = document.getElementById('mInp');
+        const body = val || inp.value;
+        if(!body) return;
 
-    // --- الدردشة ---
-    function sendMsg(type = 'text', body = null) {
-        const input = document.getElementById('msgInput');
-        const content = body || input.value;
-        if(!content) return;
-        db.ref('messages').push({
-            sender: currentUser.name, senderPic: currentUser.pic, type, body: content,
+        db.ref('msgs').push({
+            n: user.name, t: type, b: body,
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         });
-        input.value = "";
+        inp.value = "";
     }
 
-    function loadMessages() {
-        db.ref('messages').limitToLast(50).on('value', s => {
+    async function sendImgPrompt() {
+        const { value: url } = await Swal.fire({ title: 'رابط الصورة', input: 'url' });
+        if(url) actionSend('img', url);
+    }
+
+    // --- المايك (الطلب عند الحاجة) ---
+    async function handleMic() {
+        const btn = document.getElementById('mic');
+        if (!rec || rec.state === "inactive") {
+            try {
+                // هنا بيطلب الصلاحية لأول مرة فقط عند الضغط
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                rec = new MediaRecorder(stream);
+                rec.ondataavailable = e => chunks.push(e.data);
+                rec.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/ogg' });
+                    const r = new FileReader();
+                    r.readAsDataURL(blob);
+                    r.onloadend = () => actionSend('voice', r.result);
+                    chunks = [];
+                };
+                rec.start();
+                btn.classList.add('recording-active');
+            } catch (e) { Swal.fire('لازم توافق على المايك عشان تسجل'); }
+        } else {
+            rec.stop();
+            btn.classList.remove('recording-active');
+        }
+    }
+
+    function listen() {
+        db.ref('msgs').limitToLast(40).on('value', s => {
             const win = document.getElementById('chat-window');
             win.innerHTML = "";
             s.forEach(c => {
                 const m = c.val();
-                const isMe = m.sender === currentUser.name;
+                const isMe = m.n === user.name;
+                let core = m.t === 'text' ? `<div>${m.b}</div>` : 
+                           m.t === 'img' ? `<img src="${m.b}" onclick="window.open('${m.b}')">` :
+                           `<audio controls src="${m.b}"></audio>`;
+                
                 win.innerHTML += `
                     <div class="msg ${isMe ? 'sent' : 'received'}">
-                        <span class="sender-name">${m.sender}</span>
-                        ${m.type === 'text' ? `<div>${m.body}</div>` : `<audio controls src="${m.body}"></audio>`}
-                        <div style="font-size:0.6rem; opacity:0.6; margin-top:5px;">
-                            ${m.time} 
-                            ${currentUser.role === 'owner' ? `<span class="delete-btn" onclick="deleteMsg('${c.key}')">حذف</span>` : ''}
-                        </div>
+                        <small style="color:#34b7f1; display:block; font-size:0.7rem;">${m.n}</small>
+                        ${core}
+                        <div style="font-size:0.6rem; opacity:0.5; margin-top:4px;">${m.time}</div>
                     </div>`;
             });
             win.scrollTop = win.scrollHeight;
         });
     }
 
-    window.deleteMsg = (key) => { if(confirm('حذف الرسالة؟')) db.ref('messages').child(key).remove(); };
-
-    // --- الريكورد ---
-    async function toggleRecord() {
-        const btn = document.getElementById('mic-btn');
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: 'audio/ogg' });
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => sendMsg('audio', reader.result);
-                audioChunks = [];
-            };
-            mediaRecorder.start();
-            btn.style.color = "red";
-        } else { mediaRecorder.stop(); btn.style.color = "#8696a0"; }
-    }
-
-    // --- الإدارة ---
-    function openAdminPanel() {
+    function openAdmin() {
         db.ref('users').once('value', s => {
-            let h = '<div style="text-align:right">';
-            s.forEach(u => {
-                const user = u.val();
-                if(user.status === 'pending') h += `<p>${user.name} (${user.phone}) <button onclick="approve('${u.key}')">موافقة</button></p>`;
-            });
-            Swal.fire({ title: 'طلبات جديدة', html: h || 'لا يوجد طلبات' });
+            let list = '';
+            s.forEach(u => { if(u.val().status === 'wait') list += `<p>${u.val().name} <button onclick="db.ref('users').child('${u.key}').update({status:'ok'})">قبول</button></p>`; });
+            Swal.fire({ title: 'طلبات الانضمام', html: list || 'لا يوجد' });
         });
     }
-    window.approve = (key) => { db.ref('users').child(key).update({status:'approved'}).then(() => Swal.fire('تم!')); };
 </script>
 </body>
 </html>
