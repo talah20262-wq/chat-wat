@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TALLAH | THE ETERNAL EMPIRE v1000</title>
+    <title>TALLAH | THE ULTIMATE EMPIRE v2000</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -16,358 +16,306 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        
         :root { 
             --gold: #d4af37; --royal: linear-gradient(135deg, #d4af37, #f9f295, #ab8e28); 
-            --black: #020202; --dark: #0a1118; --green: #00ff88; --vip-purple: #8e44ad;
+            --black: #010101; --dark-card: #0a0a0a; --vip: #8e44ad; --green: #00ff88;
+            --glass: rgba(255, 255, 255, 0.03);
         }
-        
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--black); color: white; height: 100vh; overflow: hidden; transition: 0.5s; }
+        body { background: var(--black); color: white; height: 100vh; overflow: hidden; user-select: none; }
 
-        /* مصفوفة الهكر الخلفية */
-        #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.2; pointer-events: none; }
+        /* 1. نظام الحماية البصري (Matrix & Glass) */
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
+        .glass { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.2); }
 
-        /* الطبقات والشاشات */
+        /* 2. الهيكل التنظيمي (Screens) */
         .screen { position: fixed; inset: 0; display: none; flex-direction: column; z-index: 10; background: var(--black); }
-        .active { display: flex !important; }
+        .active { display: flex !important; animation: fadeIn 0.5s ease; }
 
-        /* نظام اللايف (خداع كروم v1000) */
-        #live-container {
-            position: fixed; top: 85px; left: 50%; transform: translateX(-50%);
-            width: 92%; max-width: 380px; height: 215px; background: #000; 
-            border: 2px solid var(--gold); border-radius: 25px; z-index: 999; 
-            display: none; overflow: hidden; box-shadow: 0 0 40px rgba(212,175,55,0.4);
+        /* 3. نظام اللايف الاحترافي (Live Node) */
+        #live-v-hub {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            width: 94%; max-width: 400px; height: 220px; background: #000;
+            border-radius: 25px; border: 2px solid var(--gold); z-index: 999;
+            display: none; overflow: hidden; box-shadow: 0 0 50px rgba(212,175,55,0.3);
         }
-        #main-v { width: 100%; height: 100%; object-fit: cover; }
-        .live-ui { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; pointer-events: none; }
-        .badge-live { background: #ff0000; color: white; padding: 3px 10px; border-radius: 5px; font-weight: 900; font-size: 11px; width: fit-content; display: flex; align-items: center; gap: 5px; }
-        .badge-live::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: blink 0.8s infinite; }
-        .viewer-count { background: rgba(0,0,0,0.7); padding: 2px 10px; border-radius: 20px; font-size: 12px; border: 1px solid var(--gold); align-self: flex-end; }
+        #v-feed { width: 100%; height: 100%; object-fit: cover; }
+        .live-tag { position: absolute; top: 15px; right: 15px; background: red; padding: 3px 12px; border-radius: 5px; font-weight: 900; font-size: 11px; animation: pulse 1s infinite; }
 
-        /* الهيدر الإمبراطوري */
-        header { background: var(--dark); padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.8); }
-        .rank-tag { font-size: 10px; background: var(--royal); color: #000; padding: 1px 6px; border-radius: 4px; font-weight: 900; margin-right: 5px; }
+        /* 4. نظام الشات (The Messenger) */
+        #chat-scroller { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 14px; position: relative; line-height: 1.6; }
+        .sent { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .recv { background: #1c282f; align-self: flex-start; border-bottom-left-radius: 2px; border-left: 3px solid var(--gold); }
+        .msg-info { font-size: 9px; opacity: 0.6; display: flex; justify-content: flex-end; gap: 5px; margin-top: 5px; }
+        .typing { font-size: 11px; color: var(--green); padding: 5px 20px; display: none; }
 
-        /* نظام الرعية (VIP & Economy) */
-        .user-card { 
-            background: linear-gradient(90deg, #111, #080808); padding: 20px; margin: 12px 15px; 
-            border-radius: 20px; border-right: 5px solid var(--gold); display: flex; 
-            justify-content: space-between; align-items: center; transition: 0.3s;
-            position: relative; overflow: hidden;
+        /* 5. لوحة العرش (The Throne) */
+        #throne-sidebar { 
+            position: fixed; left: -100%; top: 0; width: 85%; max-width: 450px; height: 100%; 
+            background: rgba(5,5,5,0.98); z-index: 10000; border-right: 2px solid var(--gold); 
+            transition: 0.5s cubic-bezier(0.7, 0, 0.3, 1); padding: 30px; overflow-y: auto;
         }
-        .user-card::before { content: 'VIP'; position: absolute; top: -10px; left: -10px; background: var(--vip-purple); font-size: 8px; padding: 15px; transform: rotate(-45deg); display: none; }
-        .is-vip::before { display: block; }
-        .xp-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--green); width: 0%; transition: 1s; }
+        .throne-active { left: 0 !important; }
 
-        /* الشات المتطور (Media & Voice) */
-        #chat-scroller { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); }
-        .m-box { max-width: 80%; padding: 15px; border-radius: 20px; font-size: 15px; position: relative; animation: fadeIn 0.3s; }
-        .m-sent { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .m-recv { background: #1c282f; align-self: flex-start; border-bottom-left-radius: 2px; border-left: 3px solid var(--gold); }
-        .m-voice { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        
-        /* لوحة التحكم (العرش العظيم) */
-        #throne-room { position: fixed; right: -100%; top: 0; width: 85%; max-width: 450px; height: 100%; background: rgba(2,2,2,0.98); z-index: 10000; border-left: 3px solid var(--gold); transition: 0.5s cubic-bezier(0.7, 0, 0.3, 1); padding: 30px; overflow-y: auto; }
-        .throne-open { right: 0 !important; }
-        .admin-stat { background: #111; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #333; display: flex; justify-content: space-between; }
+        /* 6. بروفايل الـ VIP والاقتصاد */
+        .u-card { background: var(--dark-card); padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border: 1px solid #1a1a1a; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        .badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 900; text-transform: uppercase; }
+        .king-bg { background: var(--royal); color: #000; }
 
-        /* أزرار الطاقة */
-        .btn-royal { background: var(--royal); color: #000; border: none; padding: 16px; border-radius: 15px; font-weight: 900; width: 100%; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-royal:active { transform: scale(0.95); }
-        .input-dark { background: #111; border: 2px solid var(--gold); padding: 15px; border-radius: 12px; color: #fff; width: 100%; text-align: center; margin-bottom: 15px; outline: none; }
+        /* 7. الأزرار التفاعلية */
+        .btn-gold { background: var(--royal); color: #000; border: none; padding: 15px; border-radius: 15px; font-weight: 900; width: 100%; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-gold:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .input-gold { background: #111; border: 1px solid var(--gold); padding: 15px; border-radius: 15px; color: white; width: 100%; outline: none; text-align: center; }
 
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;"> <canvas id="bg-canvas"></canvas>
 
-<canvas id="matrix-bg"></canvas>
+<div id="king-alert" style="position:fixed; top:-100px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; background:var(--royal); color:#000; padding:15px; border-radius:20px; z-index:9999; font-weight:900; text-align:center; transition:0.5s;"></div>
 
-<div id="top-alert" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:5000; background:var(--royal); color:#000; padding:10px 25px; border-radius:50px; font-weight:900; display:none; box-shadow: 0 0 30px var(--gold);">
-    <span id="alert-txt">رسالة ملكية جديدة!</span>
-</div>
-
-<div id="live-container">
-    <div class="live-ui">
-        <div class="badge-live">LIVE</div>
-        <div class="viewer-count"><i class="fas fa-eye"></i> <span id="v-count">0</span></div>
-    </div>
-    <video id="main-v" autoplay playsinline muted></video>
-</div>
-
-<div id="gate" class="screen active" style="justify-content:center; align-items:center;">
-    <div class="gate-card animate__animated animate__fadeInUp" style="width:85%; text-align:center;">
-        <h1 style="background:var(--royal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 50px; font-weight: 900;">TALLAH</h1>
-        <p style="color:gray; letter-spacing:8px; margin-bottom:40px;">THE ETERNAL SYSTEM</p>
-        <input type="password" id="gate-key" class="input-dark" placeholder="مفتاح العبور الإمبراطوري">
-        <button onclick="attemptAccess()" class="btn-royal">عبور البوابة</button>
-        <p onclick="requestPass()" style="margin-top:25px; color:var(--gold); cursor:pointer; font-size:14px;">طلب كود انضمام للرعية</p>
+<div id="live-v-hub">
+    <div class="live-tag">LIVE</div>
+    <video id="v-feed" autoplay playsinline muted></video>
+    <div style="position:absolute; bottom:10px; left:15px; font-size:12px; color:white; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:10px;">
+        <i class="fas fa-eye"></i> <span id="view-count">0</span>
     </div>
 </div>
 
-<div id="main-empire" class="screen">
-    <header>
-        <div onclick="toggleThrone()"><i class="fas fa-crown" style="color:var(--gold); font-size:24px;"></i></div>
-        <b id="my-name-display">إمبراطورية طلة</b>
-        <div onclick="logout()"><i class="fas fa-power-off" style="color:red; font-size:22px;"></i></div>
+<div id="gate-screen" class="screen active" style="justify-content:center; align-items:center; background: radial-gradient(circle, #1a1a1a 0%, #000 100%);">
+    <div class="glass" style="padding:40px; border-radius:40px; width:85%; max-width:400px; text-align:center;">
+        <h1 style="background:var(--royal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 55px; font-weight: 900;">TALLAH</h1>
+        <p style="color:gray; letter-spacing:5px; margin-bottom:40px;">THE EMPIRE OS</p>
+        <input type="password" id="gate-pass" class="input-gold" placeholder="أدخل كود العبور">
+        <button onclick="login()" class="btn-gold">فتح النظام</button>
+        <p onclick="regReq()" style="margin-top:25px; color:var(--gold); font-size:13px; cursor:pointer;">طلب انضمام جديد</p>
+    </div>
+</div>
+
+<div id="main-screen" class="screen">
+    <header class="glass">
+        <i class="fas fa-bars" onclick="toggleThrone()" style="color:var(--gold); font-size:24px;"></i>
+        <b>إمبراطورية طلة</b>
+        <i class="fas fa-power-off" style="color:red; font-size:20px;" onclick="logout()"></i>
+    </header>
+
+    <div style="display:flex; justify-content:space-around; padding:10px; background:#050505; border-bottom:1px solid #1a1a1a; font-size:12px;">
+        <span><i class="fas fa-coins" style="color:gold"></i> <span id="m-coins">0</span></span>
+        <span><i class="fas fa-shield-alt" style="color:var(--green)"></i> <span id="m-rank">عضو</span></span>
+        <span><i class="fas fa-star" style="color:cyan"></i> LVL <span id="m-lvl">1</span></span>
+    </div>
+
+    <div id="users-container" style="flex:1; overflow-y:auto; padding:15px;"></div>
+</div>
+
+<div id="throne-sidebar">
+    <h2 style="color:var(--gold); text-align:center; margin-bottom:30px;"><i class="fas fa-crown"></i> العرش</h2>
+    
+    <div id="admin-tools" style="display:none;">
+        <p style="color:var(--green); border-bottom:1px solid #222; padding-bottom:5px;">أدوات الملك</p>
+        <button onclick="live('cam')" class="btn-gold">بث الكاميرا</button>
+        <button onclick="live('screen')" class="btn-gold" style="background:var(--green)">بث الشاشة</button>
+        <button id="stop-btn" onclick="killLive()" class="btn-gold" style="background:red; color:white; display:none;">إغلاق البث</button>
+        <button onclick="boom()" class="btn-gold" style="background:orange;">احتفالية عالمية 🎉</button>
+        <button onclick="broadcast()" class="btn-gold" style="background:#444; color:white;">رسالة للكل 📢</button>
+    </div>
+
+    <div style="margin-top:40px;">
+        <p style="color:gray; border-bottom:1px solid #222; padding-bottom:5px;">المتجر الإمبراطوري</p>
+        <button class="btn-gold" style="background:rgba(255,255,255,0.05); color:white; border:1px solid #333;">شراء VIP (500 Coin)</button>
+        <button class="btn-gold" style="background:rgba(255,255,255,0.05); color:white; border:1px solid #333;">تغيير لون الاسم</button>
+    </div>
+
+    <button onclick="toggleThrone()" style="margin-top:60px; color:gray; background:none; border:none; width:100%;">رجوع</button>
+</div>
+
+<div id="chat-screen" class="screen">
+    <header class="glass">
+        <i class="fas fa-chevron-right" onclick="showView('main-screen')"></i>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="" id="target-img" class="avatar" style="width:35px; height:35px;">
+            <b id="target-name">...</b>
+        </div>
+        <i class="fas fa-phone-alt" style="color:var(--green);"></i>
     </header>
     
-    <div id="stats-ribbon" style="background:#0a1118; padding:8px; display:flex; justify-content:space-around; font-size:12px; border-bottom:1px solid #222;">
-        <span><i class="fas fa-coins" style="color:gold"></i> <span id="my-coins">0</span></span>
-        <span><i class="fas fa-star" style="color:cyan"></i> LVL <span id="my-lvl">1</span></span>
-        <span><i class="fas fa-bolt" style="color:var(--green)"></i> XP <span id="my-xp">0</span></span>
-    </div>
-
-    <div id="users-list" style="flex:1; overflow-y:auto; padding-top:10px;"></div>
-</div>
-
-<div id="throne-room">
-    <h2 style="color:var(--gold); text-align:center; margin-bottom:30px;"><i class="fas fa-shield-alt"></i> مركز القيادة</h2>
-    
-    <div class="admin-stat"><span>المتصلين الآن</span><b id="total-on">0</b></div>
-    <div class="admin-stat"><span>إجمالي الاقتصاد</span><b id="total-coins">0</b></div>
-
-    <div style="margin-top:30px; border:1px solid #333; padding:15px; border-radius:20px;">
-        <p style="color:var(--green); margin-bottom:15px;"><i class="fas fa-video"></i> إدارة البث المباشر</p>
-        <button onclick="broadcast('cam')" class="btn-royal">بث كاميرا (HD)</button>
-        <button onclick="broadcast('screen')" class="btn-royal" style="background:#00ff88;">بث الشاشة</button>
-        <button id="stop-v" onclick="killBroadcast()" class="btn-royal" style="background:red; color:white; display:none;">إغلاق البث</button>
-    </div>
-
-    <button onclick="launchParty()" class="btn-royal" style="background:orange; margin-top:20px;">تفجير احتفالات (Global) 🎉</button>
-    <button onclick="db.ref('messages').remove()" class="btn-royal" style="background:#444; color:#fff;">تطهير سجل الرسائل 🧹</button>
-    
-    <div id="pending-users" style="margin-top:30px;">
-        <h4 style="color:var(--gold);">رعايا في الانتظار</h4>
-        <div id="wait-list"></div>
-    </div>
-
-    <button onclick="toggleThrone()" style="margin-top:50px; background:none; border:none; color:gray; width:100%;">العودة للمملكة</button>
-</div>
-
-<div id="chat-empire" class="screen">
-    <header>
-        <i class="fas fa-chevron-right" onclick="showScreen('main-empire')"></i>
-        <b id="target-user-name">اسم الرعية</b>
-        <i class="fas fa-ellipsis-v"></i>
-    </header>
     <div id="chat-scroller"></div>
-    
-    <div style="background:var(--dark); padding:10px; display:flex; gap:15px; border-top:1px solid #222; justify-content:center;">
-        <i class="fas fa-image" onclick="pickFile('img')" style="color:#3498db"></i>
-        <i class="fas fa-file-pdf" onclick="pickFile('pdf')" style="color:#e74c3c"></i>
-        <i class="fas fa-microphone" id="voice-btn" style="color:var(--green)"></i>
-        <i class="fas fa-laugh" style="color:gold"></i>
-    </div>
+    <div id="is-typing" class="typing">يكتب الآن...</div>
 
-    <div style="padding:15px; background:var(--dark); display:flex; gap:10px; align-items:center;">
-        <input type="text" id="m-input" class="input-dark" style="margin:0; border-radius:30px; text-align:right;" placeholder="اكتب أمرك الملكي...">
-        <button onclick="send()" style="background:var(--royal); border:none; width:50px; height:50px; border-radius:50%; color:#000;"><i class="fas fa-paper-plane"></i></button>
+    <div style="padding:15px; background:var(--dark-card); display:flex; gap:10px; align-items:center;">
+        <i class="fas fa-plus" style="color:var(--gold)"></i>
+        <input type="text" id="m-input" class="input-gold" style="margin:0; text-align:right;" placeholder="رسالة مشفرة...">
+        <button onclick="sendMsg()" style="background:var(--royal); border:none; width:45px; height:45px; border-radius:50%; color:#000;"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
 <script>
-    // --- 1. إعداد النواة (Core Config) ---
-    const firebaseConfig = { 
-        databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/",
-        storageBucket: "talah-c12c5.appspot.com"
-    };
-    firebase.initializeApp(firebaseConfig);
+    // 1. محرك الإمبراطورية (Engine)
+    const config = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    firebase.initializeApp(config);
     const db = firebase.database();
-    const storage = firebase.storage();
+    
+    const peer = new Peer(null, { config: {'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }]} });
+    
+    let me = JSON.parse(localStorage.getItem('tallah_v2000_auth'));
+    let activeChat, myStream;
 
-    // سيرفرات Google STUN العالمية لضمان عدم التقطيع
-    const ice = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }, { 'urls': 'stun:stun1.l.google.com:19302' }] };
-    const peer = new Peer(Math.random().toString(36).substr(2, 9), { config: ice });
+    if(me) { document.getElementById('gate-screen').style.display='none'; showView('main-screen'); initApp(); }
 
-    let me = JSON.parse(localStorage.getItem('tallah_eternal_v1000'));
-    let myStream, activeChatKey, isRecording = false;
-
-    if(me) { document.getElementById('gate').style.display='none'; showScreen('main-empire'); startEmpireEngine(); }
-
-    function showScreen(id) {
+    function showView(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
-    // --- 2. نظام الدخول والحماية (Security) ---
-    function attemptAccess() {
-        const key = document.getElementById('gate-key').value;
-        if(key === "248") { 
-            me = {uid:'admin', name:'الإمبراطور', role:'admin', coins:9999, lvl:99, xp:1000, active:true, badge:'KING'}; 
-            finalizeAccess(); return; 
+    // 2. نظام الدخول والأمان
+    function login() {
+        const p = document.getElementById('gate-pass').value;
+        if(p === "248") { 
+            me = {uid:'admin', name:'الإمبراطور', role:'admin', coins:10000, lvl:100, badge:'KING', avatar:'https://cdn-icons-png.flaticon.com/512/6941/6941697.png'}; 
+            save(); return; 
         }
-        db.ref('users').once('value', snap => {
-            let found = false;
-            snap.forEach(u => {
-                if(u.val().code === key && u.val().active) {
-                    me = { ...u.val(), uid: u.key }; finalizeAccess(); found = true;
-                }
-            });
-            if(!found) Swal.fire('دخول مرفوض','المفتاح غير صحيح أو الحساب غير مفعل','error');
+        db.ref('users').once('value', s => {
+            s.forEach(u => { if(u.val().code === p && u.val().active) { me = {...u.val(), uid:u.key}; save(); } });
         });
     }
+    function save() { localStorage.setItem('tallah_v2000_auth', JSON.stringify(me)); location.reload(); }
 
-    function finalizeAccess() { localStorage.setItem('tallah_eternal_v1000', JSON.stringify(me)); location.reload(); }
-
-    // --- 3. محرك الإمبراطورية (The Engine) ---
-    function startEmpireEngine() {
-        // تحديث الحالة الاقتصادية والنشاط
-        db.ref('status/'+me.uid).set({ online: true, last: Date.now() });
-        db.ref('status/'+me.uid).onDisconnect().set({ online: false, last: Date.now() });
+    // 3. التطبيق واللايف (Live & Sync)
+    function initApp() {
+        db.ref('status/'+me.uid).set({ online: true, typing: false });
+        db.ref('status/'+me.uid).onDisconnect().set({ online: false, typing: false });
         
-        updateStats();
-        syncUsers();
-        listenForBroadcasts();
-        listenForGlobalEvents();
-        initMatrix();
+        renderUsers();
+        syncMe();
+        
+        if(me.role === 'admin') document.getElementById('admin-tools').style.display = 'block';
 
-        // استقبال البث (Bypass Chrome v1000)
+        // استقبال اللايف (The Bypass)
         peer.on('call', call => {
             call.answer();
             call.on('stream', stream => {
-                const v = document.getElementById('main-v');
-                document.getElementById('live-container').style.display = 'block';
+                const v = document.getElementById('v-feed');
+                document.getElementById('live-v-hub').style.display = 'block';
                 v.srcObject = stream;
                 v.onloadedmetadata = () => { v.play(); v.currentTime = 0.1; };
-                startLiveInteractions();
             });
         });
-    }
 
-    // --- 4. البث المباشر المتقدم (Advanced Live) ---
-    async function broadcast(type) {
-        try {
-            myStream = (type === 'cam') ? 
-                await navigator.mediaDevices.getUserMedia({video:true, audio:true}) : 
-                await navigator.mediaDevices.getDisplayMedia({video:true, audio:true});
-            
-            document.getElementById('main-v').srcObject = myStream;
-            document.getElementById('live-container').style.display = 'block';
-            document.getElementById('stop-v').style.display = 'block';
-            db.ref('admin_live_id').set(peer.id);
-        } catch(e) { Swal.fire('خطأ','لم نتمكن من الوصول للوسائط','error'); }
-    }
-
-    function killBroadcast() {
-        if(myStream) myStream.getTracks().forEach(t => t.stop());
-        db.ref('admin_live_id').remove();
-        location.reload();
-    }
-
-    function listenForBroadcasts() {
-        db.ref('admin_live_id').on('value', s => {
-            if(s.val() && me.role !== 'admin') {
-                showAlert("الإمبراطور بدأ بثاً مباشراً الآن!");
-                peer.call(s.val(), new MediaStream());
-            } else if(!s.val()) {
-                document.getElementById('live-container').style.display = 'none';
-            }
+        db.ref('live_id').on('value', s => {
+            if(s.val() && me.role !== 'admin') peer.call(s.val(), new MediaStream());
+            else if(!s.val()) document.getElementById('live-v-hub').style.display = 'none';
         });
+
+        db.ref('global_boom').on('value', s => { if(s.val() > Date.now()-3000) confetti(); });
+        initMatrix();
     }
 
-    // --- 5. نظام الشات والوسائط (Media Chat) ---
-    function syncUsers() {
-        db.ref('users').on('value', snap => {
-            const list = document.getElementById('users-list'); list.innerHTML = "";
-            let totalC = 0, totalO = 0;
-            snap.forEach(u => {
+    async function live(type) {
+        myStream = (type === 'cam') ? 
+            await navigator.mediaDevices.getUserMedia({video:true, audio:true}) : 
+            await navigator.mediaDevices.getDisplayMedia({video:true, audio:true});
+        document.getElementById('v-feed').srcObject = myStream;
+        document.getElementById('live-v-hub').style.display = 'block';
+        document.getElementById('stop-btn').style.display = 'block';
+        db.ref('live_id').set(peer.id);
+    }
+
+    function killLive() { if(myStream) myStream.getTracks().forEach(t => t.stop()); db.ref('live_id').remove(); location.reload(); }
+
+    // 4. الشات المتطور (Chat Engine)
+    function renderUsers() {
+        db.ref('users').on('value', s => {
+            const cont = document.getElementById('users-container'); cont.innerHTML = "";
+            s.forEach(u => {
                 if(u.key === me.uid || !u.val().active) return;
-                totalC += (u.val().coins || 0);
-                list.innerHTML += `
-                    <div class="user-card animate__animated animate__fadeInRight" onclick="openChat('${u.key}','${u.val().name}')">
-                        <div>
-                            <span class="rank-tag">${u.val().badge || 'عضو'}</span>
-                            <b>${u.val().name}</b>
-                            <div style="font-size:10px; color:gray">آخر ظهور: نشط الآن</div>
+                cont.innerHTML += `
+                    <div class="u-card animate__animated animate__fadeInRight" onclick="openChat('${u.key}','${u.val().name}','${u.val().avatar}')">
+                        <img src="${u.val().avatar}" class="avatar">
+                        <div style="flex:1">
+                            <b>${u.val().name}</b> <span class="badge king-bg">${u.val().badge || 'عضو'}</span>
+                            <div id="status-${u.key}" style="font-size:10px; color:gray">آخر ظهور: جاري التحميل...</div>
                         </div>
-                        <div id="stat-${u.key}" style="color:gray">●</div>
-                        <div class="xp-bar" style="width:${(u.val().xp || 0)}%"></div>
+                        <div id="dot-${u.key}" style="width:10px; height:10px; background:gray; border-radius:50%"></div>
                     </div>`;
                 db.ref('status/'+u.key).on('value', st => {
-                    const icon = document.getElementById('stat-'+u.key);
-                    if(icon && st.val()?.online) { icon.style.color = 'var(--green)'; totalO++; }
+                    const dot = document.getElementById('dot-'+u.key);
+                    const txt = document.getElementById('status-'+u.key);
+                    if(dot) { 
+                        dot.style.background = st.val()?.online ? 'var(--green)' : 'gray'; 
+                        txt.innerText = st.val()?.online ? 'متصل الآن' : 'غير متصل';
+                    }
                 });
             });
-            document.getElementById('total-coins').innerText = totalC;
-            document.getElementById('total-on').innerText = totalO;
         });
     }
 
-    function openChat(id, name) {
-        activeChatKey = [me.uid, id].sort().join("_");
-        document.getElementById('target-user-name').innerText = name;
-        showScreen('chat-empire');
-        db.ref('chats/'+activeChatKey).limitToLast(50).on('value', snap => {
+    function openChat(id, name, img) {
+        activeChat = [me.uid, id].sort().join("_");
+        document.getElementById('target-name').innerText = name;
+        document.getElementById('target-img').src = img;
+        showView('chat-screen');
+        
+        db.ref('chats/'+activeChat).on('value', s => {
             const box = document.getElementById('chat-scroller'); box.innerHTML = "";
-            snap.forEach(m => {
-                let content = m.val().type === 'img' ? `<img src="${m.val().url}" style="width:100%; border-radius:10px;">` : m.val().text;
-                if(m.val().type === 'voice') content = `<div class="m-voice" onclick="playAudio('${m.val().url}')"><i class="fas fa-play"></i> رسالة صوتية</div>`;
-                box.innerHTML += `<div class="m-box ${m.val().sender===me.uid?'m-sent':'m-recv'}">${content}</div>`;
+            s.forEach(m => {
+                box.innerHTML += `<div class="msg ${m.val().sender===me.uid?'sent':'recv'}">
+                    ${m.val().text}
+                    <div class="msg-info"><span>${new Date(m.val().t).getHours()}:${new Date(m.val().t).getMinutes()}</span> <i class="fas fa-check-double"></i></div>
+                </div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
+
+        db.ref('status/'+id).on('value', st => {
+            document.getElementById('is-typing').style.display = st.val()?.typing ? 'block' : 'none';
+        });
     }
 
-    function send() {
-        const inp = document.getElementById('m-input'); if(!inp.value) return;
-        db.ref('chats/'+activeChatKey).push({ sender: me.uid, text: inp.value, type: 'text', t: Date.now() });
-        // ربح نقاط خبرة وعملات عند الشات
-        gainXP(2);
-        inp.value = "";
+    function sendMsg() {
+        const i = document.getElementById('m-input'); if(!i.value) return;
+        db.ref('chats/'+activeChat).push({ sender: me.uid, text: i.value, t: Date.now() });
+        db.ref('users/'+me.uid).update({ coins: (me.coins || 0) + 1 }); // ربح عملة لكل رسالة
+        i.value = "";
     }
 
-    // --- 6. الاقتصاد واللفل (Economy & Levels) ---
-    function updateStats() {
+    // 5. الاقتصاد والمؤثرات
+    function syncMe() {
         db.ref('users/'+me.uid).on('value', s => {
-            const data = s.val() || me;
-            document.getElementById('my-coins').innerText = data.coins || 0;
-            document.getElementById('my-lvl').innerText = data.lvl || 1;
-            document.getElementById('my-xp').innerText = data.xp || 0;
-            document.getElementById('my-name-display').innerText = data.name;
+            const d = s.val() || me;
+            document.getElementById('m-coins').innerText = d.coins;
+            document.getElementById('m-lvl').innerText = d.lvl;
+            document.getElementById('m-rank').innerText = d.badge || 'عضو';
         });
     }
 
-    function gainXP(amt) {
-        let newXP = (me.xp || 0) + amt;
-        let newLvl = me.lvl || 1;
-        if(newXP >= 100) { newXP = 0; newLvl++; Swal.fire('ترقية!','وصلت للمستوى ' + newLvl,'success'); }
-        db.ref('users/'+me.uid).update({ xp: newXP, lvl: newLvl, coins: (me.coins || 0) + 1 });
-    }
-
-    // --- 7. الإضافات الخرافية (Special FX) ---
-    function launchParty() { db.ref('global_event').set({ type: 'party', t: Date.now() }); }
-    
-    function listenForGlobalEvents() {
-        db.ref('global_event').on('value', s => {
-            if(s.val() && s.val().t > Date.now()-5000) {
-                if(s.val().type === 'party') confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-            }
-        });
-    }
-
-    function showAlert(txt) {
-        const el = document.getElementById('top-alert');
-        document.getElementById('alert-txt').innerText = txt;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 5000);
-    }
+    function boom() { db.ref('global_boom').set(Date.now()); }
 
     function initMatrix() {
-        const c = document.getElementById("matrix-bg"), ctx = c.getContext("2d");
+        const c = document.getElementById("bg-canvas"), ctx = c.getContext("2d");
         c.width = window.innerWidth; c.height = window.innerHeight;
-        const drops = []; for(let i=0; i<50; i++) drops.push({x: Math.random()*c.width, y: Math.random()*c.height, s: Math.random()*2+1});
+        const drops = []; for(let i=0; i<30; i++) drops.push({x:Math.random()*c.width, y:Math.random()*c.height, s:Math.random()*2});
         function draw() {
             ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,c.width,c.height);
-            ctx.fillStyle = "#d4af37"; ctx.font = "15px monospace";
-            drops.forEach(d => { ctx.fillText(Math.floor(Math.random()*2), d.x, d.y); d.y += d.s; if(d.y > c.height) d.y = 0; });
+            ctx.fillStyle = "#d4af37"; drops.forEach(d => { ctx.fillText("T", d.x, d.y); d.y+=d.s; if(d.y>c.height) d.y=0; });
             requestAnimationFrame(draw);
         } draw();
     }
 
-    function toggleThrone() { if(me.role==='admin') document.getElementById('throne-room').classList.toggle('throne-open'); }
+    function toggleThrone() { document.getElementById('throne-sidebar').classList.toggle('throne-active'); }
     function logout() { localStorage.clear(); location.reload(); }
+    
+    // منع اختصار F12
+    window.onkeydown = (e) => { 
+        if(e.keyCode === 123) return false; 
+        if(e.key === 'Enter') sendMsg();
+        db.ref('status/'+me.uid).update({ typing: true });
+        clearTimeout(window.t_timeout);
+        window.t_timeout = setTimeout(() => db.ref('status/'+me.uid).update({ typing: false }), 2000);
+    };
 </script>
 </body>
 </html>
