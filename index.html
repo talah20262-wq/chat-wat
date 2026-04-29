@@ -1,200 +1,187 @@
-<!-- نفس HTML بتاعك بدون تغيير كبير -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tallah Ultra Chat</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+<style>
+body{margin:0;font-family:tahoma;background:#0b141a;color:#fff}
+#users .u{padding:12px;border-bottom:1px solid #222;cursor:pointer}
+.chat{position:fixed;inset:0;display:none;flex-direction:column}
+.top{background:#202c33;padding:10px;display:flex;gap:10px;align-items:center}
+.box{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column}
+.msg{padding:8px;margin:6px;border-radius:10px;max-width:75%}
+.me{background:#005c4b;margin-left:auto}
+.oth{background:#202c33}
+.footer{display:flex;padding:10px;background:#202c33;gap:6px}
+.footer input{flex:1;padding:10px;border:none;border-radius:20px}
+.small{font-size:10px;opacity:.6}
+.status{font-size:11px;opacity:.7}
+</style>
+</head>
+
+<body>
+
+<div id="users"></div>
+
+<div id="chat" class="chat">
+  <div class="top">
+    <img id="img" style="width:40px;height:40px;border-radius:50%">
+    <div>
+      <div id="name"></div>
+      <div id="status" class="status"></div>
+    </div>
+    <button onclick="closeChat()">رجوع</button>
+  </div>
+
+  <div id="box" class="box"></div>
+
+  <div class="footer">
+    <input id="inp" oninput="typing()">
+    <button onclick="send()">➤</button>
+  </div>
+</div>
 
 <script>
-const firebaseConfig = {
-  databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+
+firebase.initializeApp({
+  databaseURL:"https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+});
+
+const db=firebase.database();
+
+let me=JSON.parse(localStorage.getItem("me"))||{
+  id:Date.now().toString(),
+  name:"user"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+localStorage.setItem("me",JSON.stringify(me));
 
-let me = JSON.parse(localStorage.getItem('tallah_ultra_v7'));
-let activeChatID = null;
-let targetID = null;
-let chatRef = null;
+let active=null;
+let ref=null;
 
-/* =========================
-   LOGIN (زي ما هو)
-========================= */
-function finalizeLogin(){
-  localStorage.setItem('tallah_ultra_v7', JSON.stringify(me));
-  location.reload();
-}
+/* ================= USERS ================= */
+db.ref("users/"+me.id).set({
+  name:me.name,
+  online:true,
+  lastSeen:Date.now()
+});
 
-/* =========================
-   USERS FIX (بدون تكرار listeners)
-========================= */
-function loadUsers(){
-  db.ref("users").on("value", snap=>{
-    const box = document.getElementById("users-list-box");
-    box.innerHTML = "";
-
-    const users = snap.val() || {};
-
-    Object.keys(users).forEach(id=>{
-      const user = users[id];
-      if(user.id === me.id) return;
-
-      box.innerHTML += `
-        <div class="user-row" onclick="openChat('${user.id}','${user.name}','${user.pfp}')">
-          <img src="${user.pfp}" class="pfp">
-          <div style="flex:1"><b>${user.name}</b></div>
-        </div>
-      `;
+/* presence */
+db.ref(".info/connected").on("value",snap=>{
+  if(snap.val()){
+    db.ref("users/"+me.id).update({online:true});
+    db.ref("users/"+me.id).onDisconnect().update({
+      online:false,
+      lastSeen:Date.now()
     });
+  }
+});
+
+/* load users */
+db.ref("users").on("value",snap=>{
+  let d=snap.val()||{};
+  let x="";
+
+  Object.keys(d).forEach(i=>{
+    if(i==me.id) return;
+
+    x+=`
+      <div class="u" onclick="openChat('${i}','${d[i].name}','${d[i].online}','${d[i].lastSeen}')">
+        ${d[i].name}
+      </div>`;
   });
-}
 
-/* =========================
-   CHAT FIX (أهم تعديل)
-   child_added بدل value
-========================= */
-function openChat(id,name,pfp){
+  users.innerHTML=x;
+});
 
-  targetID = id;
-  activeChatID = [me.id,id].sort().join("_");
+/* chat id */
+cid=(a,b)=>[a,b].sort().join("_");
 
-  document.getElementById('chat-ui').style.display='flex';
-  document.getElementById('chat-user-name').innerText = name;
-  document.getElementById('chat-pfp').src = pfp;
+/* ================= OPEN CHAT ================= */
+function openChat(id,name,online,lastSeen){
+  active=id;
+  chat.style.display="flex";
 
-  db.ref(`unread/${me.id}/${id}`).set(0);
+  nameEl=name;
+  document.getElementById("name").innerText=name;
 
-  /* ❌ حل مشكلة تكرار listeners */
-  if(chatRef) chatRef.off();
+  img.src="https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  document.getElementById('chat-msgs-box').innerHTML = "";
+  status.innerText=online?"Online":"آخر ظهور "+new Date(lastSeen).toLocaleTimeString();
 
-  chatRef = db.ref("messages/"+activeChatID)
-    .limitToLast(50);
+  if(ref) ref.off();
+  box.innerHTML="";
 
-  chatRef.on("child_added", snap=>{
-    const d = snap.val();
-    const box = document.getElementById("chat-msgs-box");
+  ref=db.ref("messages/"+cid(me.id,id)).limitToLast(50);
 
-    const isMe = d.sender === me.id;
+  ref.on("child_added",s=>{
+    let d=s.val();
+    let k=s.key;
+    let isMe=d.sender==me.id;
 
-    let content =
-      d.type === 'image' ? `<img src="${d.content}" class="msg-img">` :
-      d.type === 'voice' ? `<audio controls src="${d.content}"></audio>` :
-      d.content;
-
-    box.innerHTML += `
-      <div class="bubble ${isMe ? 'b-me':'b-other'}">
-        ${content}
-        <div style="font-size:10px;opacity:0.6">
-          ${isMe ? (d.seen ? '✔✔' : '✔') : ''}
-        </div>
+    box.innerHTML+=`
+      <div class="msg ${isMe?'me':'oth'}">
+        ${d.content}
+        <div class="small">${isMe?(d.seen?'✔✔':'✔'):''}</div>
       </div>
     `;
 
     if(!isMe && !d.seen){
-      db.ref("messages/"+activeChatID+"/"+snap.key).update({seen:true});
+      db.ref("messages/"+cid(me.id,id)+"/"+k).update({seen:true});
     }
 
-    box.scrollTop = box.scrollHeight;
+    box.scrollTop=999999;
+  });
+
+  /* typing */
+  db.ref("typing/"+cid(me.id,id)).on("value",s=>{
+    let v=s.val();
+    if(v && v.user!=me.id){
+      status.innerText=v.name+" يكتب الآن...";
+    }
   });
 }
 
-/* =========================
-   SEND TEXT (مضبوط)
-========================= */
-function sendText(){
-  const input = document.getElementById('msg-input');
-  if(!input.value) return;
+/* ================= SEND ================= */
+function send(){
+  let v=inp.value;
+  if(!v) return;
 
-  db.ref("messages/"+activeChatID).push({
+  db.ref("messages/"+cid(me.id,active)).push({
     sender:me.id,
-    content:input.value,
-    type:"text",
+    content:v,
     time:Date.now(),
     seen:false
   });
 
-  db.ref(`unread/${targetID}/${me.id}`)
-    .transaction(c=>(c||0)+1);
-
-  input.value="";
+  inp.value="";
 }
 
-/* =========================
-   FIX VOICE (WebM بدل mp3)
-========================= */
-let rec,chunks=[];
-
-async function toggleVoice(){
-  const btn=document.getElementById('mic-btn');
-
-  if(!rec || rec.state==="inactive"){
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-
-    rec = new MediaRecorder(stream);
-    rec.start();
-    chunks=[];
-
-    rec.ondataavailable=e=>chunks.push(e.data);
-
-    rec.onstop=()=>{
-      const blob = new Blob(chunks,{type:'audio/webm'});
-      const r = new FileReader();
-
-      r.readAsDataURL(blob);
-      r.onloadend=()=>{
-        db.ref("messages/"+activeChatID).push({
-          sender:me.id,
-          content:r.result,
-          type:"voice",
-          time:Date.now(),
-          seen:false
-        });
-      };
-    };
-
-    btn.style.color="red";
-  }else{
-    rec.stop();
-    btn.style.color="#8696a0";
-  }
-}
-
-/* =========================
-   TYPING FIX (خفيف وسريع)
-========================= */
-function isTyping(){
-  db.ref(`typing/${activeChatID}`).set({
+/* ================= TYPING ================= */
+function typing(){
+  db.ref("typing/"+cid(me.id,active)).set({
     user:me.id,
     name:me.name
   });
 
   clearTimeout(window.t);
   window.t=setTimeout(()=>{
-    db.ref(`typing/${activeChatID}`).remove();
-  },1200);
+    db.ref("typing/"+cid(me.id,active)).remove();
+  },1000);
 }
 
-/* =========================
-   TYPING LISTENER
-========================= */
-db.ref("typing").on("value",snap=>{
-  const d=snap.val()||{};
-  const el=document.getElementById("typing-info");
-
-  if(d.user && d.user!==me.id){
-    el.classList.remove("hidden");
-    el.innerText=d.name+" يكتب الآن...";
-  }else{
-    el.classList.add("hidden");
-  }
-});
-
-/* =========================
-   INIT
-========================= */
-if(me){
-  document.getElementById('gate').classList.add('hidden');
-  document.getElementById('main-app').classList.remove('hidden');
-  loadUsers();
+/* ================= CLOSE ================= */
+function closeChat(){
+  chat.style.display="none";
 }
 
 </script>
+
+</body>
+</html>
