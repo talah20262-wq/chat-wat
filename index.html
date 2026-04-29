@@ -1,328 +1,172 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tallah Star | الإمبراطورية</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tallah Star | الإمبراطورية</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
-    <style>
-        :root {
-            --bg: #0b141a; --hdr: #202c33; --green: #00a884;
-            --text: #e9edef; --gold: #d4af37; --blue: #20adff; --msg-me: #005c4b;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        /* نظام الثيمات */
-        body.theme-gold { --bg: #1a160b; --hdr: #2c2514; --gold: #ffd700; }
-        body.theme-midnight { --bg: #000; --hdr: #111; --green: #1ebea5; }
-        body.theme-rose { --bg: #1a0b12; --hdr: #2c141e; --gold: #ff69b4; }
-        body.theme-ocean { --bg: #0b141a; --hdr: #14212c; --blue: #00d4ff; }
+<style>
+:root {
+    --bg:#0b141a;
+    --hdr:#202c33;
+    --green:#00a884;
+    --text:#e9edef;
+    --gold:#d4af37;
+    --blue:#20adff;
+    --msg-me:#005c4b;
+}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+body{margin:0;font-family:tahoma;background:var(--bg);color:var(--text);overflow:hidden}
 
-        /* بوابة الدخول */
-        #gate { position: fixed; inset: 0; background: var(--bg); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .gate-card { background: #1c282f; width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; border: 1px solid var(--gold); text-align: center; }
+/* UI */
+.user-row{display:flex;padding:14px;border-bottom:1px solid #222;align-items:center;cursor:pointer}
+.user-row:hover{background:#111}
+.pfp{width:50px;height:50px;border-radius:50%;margin-left:12px}
 
-        /* واجهة التطبيق */
-        header { background: var(--hdr); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .user-row { display: flex; padding: 15px; border-bottom: 1px solid #222d34; align-items: center; cursor: pointer; position: relative; transition: 0.3s; }
-        .user-row:hover { background: rgba(255,255,255,0.05); }
-        .pfp { width: 52px; height: 52px; border-radius: 50%; margin-left: 15px; object-fit: cover; }
-        .unread-badge { background: var(--green); color: white; border-radius: 50%; min-width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; margin-right: auto; }
-
-        /* شاشة الدردشة */
-        #chat-ui { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; flex-direction: column; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(0,0,0,0.9); background-blend-mode: darken; display: flex; flex-direction: column; }
-        .bubble { max-width: 75%; padding: 10px; border-radius: 12px; margin-bottom: 10px; position: relative; }
-        .b-me { background: var(--msg-me); align-self: flex-end; border-top-right-radius: 0; }
-        .b-other { background: var(--hdr); align-self: flex-start; border-top-left-radius: 0; }
-        .msg-img { width: 100%; border-radius: 8px; margin-top: 5px; }
-
-        /* الفوتر */
-        .chat-footer { background: var(--hdr); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .footer-in { flex: 1; background: #2a3942; border: none; border-radius: 25px; padding: 12px 18px; color: white; outline: none; }
-        .footer-btn { font-size: 22px; color: #8696a0; cursor: pointer; }
-        #typing-info { font-size: 11px; color: var(--green); display: none; }
-
-        /* اللوحة الإدارية */
-        .admin-panel { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; padding: 20px; overflow-y: auto; }
-        .admin-card { background: #1c282f; padding: 20px; border-radius: 15px; margin-bottom: 20px; border-right: 5px solid var(--gold); }
-
-        .hidden { display: none !important; }
-        .tick { font-size: 11px; margin-right: 4px; color: #8696a0; }
-        .tick-seen { color: var(--blue) !important; }
-    </style>
+/* chat */
+#chat-ui{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.chat-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column}
+.bubble{max-width:75%;padding:10px;margin:6px;border-radius:10px}
+.b-me{background:var(--msg-me);margin-left:auto}
+.b-other{background:var(--hdr)}
+</style>
 </head>
-<body id="main-body">
+
+<body>
 
 <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
-<div id="gate">
-    <div class="gate-card">
-        <h1 style="color:var(--gold); margin-bottom: 25px;">Tallah Star</h1>
-        <button onclick="loginGoogle()" style="width:100%; padding:14px; border-radius:12px; border:none; background:#fff; font-weight:bold; cursor:pointer;">
-            <i class="fab fa-google"></i> الدخول بحساب Google
-        </button>
-        <div style="margin: 20px 0; color: #555;">أو</div>
-        <input type="password" id="admin-code" placeholder="كود الإمبراطور" style="width:100%; padding:12px; border-radius:10px; border:none; background:#2a3942; color:white; text-align:center;">
-        <button onclick="loginAdmin()" style="width:100%; background:var(--gold); padding:12px; margin-top:10px; border:none; border-radius:10px; font-weight:bold;">دخول</button>
-    </div>
+<div id="app">
+    <div id="users-list"></div>
 </div>
 
-<div id="app" class="hidden">
-    <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <img id="my-avatar" src="" style="width:38px; height:38px; border-radius:50%;">
-            <b id="brand-name-display">Tallah Star</b>
-        </div>
-        <div style="display:flex; gap:20px; font-size:18px; cursor:pointer;">
-            <i class="fas fa-palette" onclick="toggleThemes()"></i>
-            <i class="fas fa-crown" id="crown-icon" onclick="openAdmin()"></i>
-            <i class="fas fa-power-off" onclick="logout()"></i>
-        </div>
-    </header>
-
-    <div id="themes-bar" class="hidden" style="background:var(--hdr); padding:12px; display:flex; gap:12px; overflow-x:auto;">
-        <div onclick="applyTheme('default')" style="background:#0b141a; width:30px; height:30px; border-radius:50%; border:2px solid white;"></div>
-        <div onclick="applyTheme('gold')" style="background:#ffd700; width:30px; height:30px; border-radius:50%;"></div>
-        <div onclick="applyTheme('rose')" style="background:#ff69b4; width:30px; height:30px; border-radius:50%;"></div>
-        <div onclick="applyTheme('midnight')" style="background:#333; width:30px; height:30px; border-radius:50%;"></div>
-    </div>
-
-    <div id="users-list-box"></div>
-</div>
-
+<!-- CHAT -->
 <div id="chat-ui">
-    <div style="background:var(--hdr); padding:10px; display:flex; align-items:center; gap:12px;">
+    <div style="padding:10px;background:var(--hdr);display:flex;align-items:center;gap:10px">
         <i class="fas fa-arrow-right" onclick="closeChat()"></i>
-        <img id="chat-pfp" class="pfp" style="width:42px; height:42px; margin:0">
-        <div>
-            <b id="chat-user-name"></b><br>
-            <span id="typing-info">يكتب الآن...</span>
-        </div>
+        <b id="chat-name"></b>
     </div>
-    <div id="chat-msgs-box" class="chat-body"></div>
-    <div class="chat-footer">
-        <label for="img-in"><i class="fas fa-image footer-btn"></i></label>
-        <input type="file" id="img-in" hidden accept="image/*" onchange="sendImg(this)">
-        
-        <input type="text" id="msg-input" class="footer-in" placeholder="اكتب رسالة..." oninput="isTyping()">
-        
-        <i class="fas fa-microphone footer-btn" id="mic-btn" onclick="toggleVoice()"></i>
-        <i class="fas fa-paper-plane" style="color:var(--green); font-size:24px; cursor:pointer;" onclick="sendText()"></i>
-    </div>
-</div>
 
-<div id="admin-panel" class="admin-panel">
-    <h2 style="color:var(--gold); border-bottom:1px solid #333; padding-bottom:15px;">الإدارة الملكية 👑</h2>
-    <div class="admin-card">
-        <h4>تغيير اسم البراند ✍️</h4>
-        <input type="text" id="site-name-input" placeholder="الاسم الجديد">
-        <button onclick="saveSiteName()" style="width:100%; padding:10px; background:var(--blue); border:none; border-radius:8px; color:white; margin-top:10px;">تحديث</button>
+    <div id="chat-box" class="chat-body"></div>
+
+    <div style="display:flex;padding:10px;background:var(--hdr)">
+        <input id="msg" style="flex:1;padding:10px;border-radius:20px;border:none">
+        <button onclick="send()" style="margin-right:10px">➤</button>
     </div>
-    <div class="admin-card">
-        <h4>إدارة المستخدمين 🚫</h4>
-        <div id="admin-users-list"></div>
-    </div>
-    <button onclick="closeAdmin()" style="width:100%; padding:12px; background:red; border:none; border-radius:10px; color:white; font-weight:bold;">خروج</button>
 </div>
 
 <script>
-    // تفعيل Firebase
-    const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
 
-    let me = JSON.parse(localStorage.getItem('tallah_ultra_v7'));
-    let activeChatID = null;
-    let targetID = null;
+/* Firebase */
+const firebaseConfig = {
+    databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
 
-    // --- التسجيل والدخول ---
-    function loginGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then(res => {
-            const u = res.user;
-            me = { id: u.uid, name: u.displayName, pfp: u.photoURL, role: 'user' };
-            db.ref('users/' + u.uid).set(me);
-            finalizeLogin();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* user */
+let me = JSON.parse(localStorage.getItem("me")) || {
+    id: Date.now().toString(),
+    name: "Guest"
+};
+
+let activeChat = null;
+let chatRef = null;
+
+/* save user */
+localStorage.setItem("me", JSON.stringify(me));
+
+/* USERS */
+function loadUsers(){
+    db.ref("users").on("value", snap=>{
+        const users = snap.val() || {};
+        const box = document.getElementById("users-list");
+        box.innerHTML = "";
+
+        Object.keys(users).forEach(id=>{
+            if(id === me.id) return;
+
+            const u = users[id];
+
+            box.innerHTML += `
+                <div class="user-row" onclick="openChat('${id}','${u.name}')">
+                    <img src="${u.pfp || 'https://i.pravatar.cc/150'}" class="pfp">
+                    <div><b>${u.name}</b></div>
+                </div>
+            `;
         });
-    }
+    });
+}
 
-    function loginAdmin() {
-        const code = document.getElementById('admin-code').value;
-        if(code === "248") {
-            me = { id: 'admin_tallah', name: 'الإمبراطور', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', role: 'admin' };
-            finalizeLogin();
-        } else {
-            Swal.fire('خطأ', 'الكود غير صحيح يا إمبراطور', 'error');
-        }
-    }
+/* CHAT ID */
+function chatId(a,b){
+    return [a,b].sort().join("_");
+}
 
-    function finalizeLogin() { localStorage.setItem('tallah_ultra_v7', JSON.stringify(me)); location.reload(); }
+/* OPEN CHAT (FIXED LISTENER ISSUE) */
+function openChat(id,name){
+    activeChat = id;
+    document.getElementById("chat-name").innerText = name;
+    document.getElementById("chat-ui").style.display="flex";
 
-    if(me) {
-        document.getElementById('gate').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        document.getElementById('my-avatar').src = me.pfp;
-        runApp();
-    }
+    const idChat = chatId(me.id, id);
 
-    // --- تشغيل التطبيق ---
-    function runApp() {
-        if(me.role !== 'admin') document.getElementById('crown-icon').classList.add('hidden');
-        
-        // جلب الإعدادات
-        db.ref('settings').on('value', s => {
-            if(s.val()) {
-                document.getElementById('brand-name-display').innerText = s.val().siteName;
-                document.title = s.val().siteName;
-            }
-        });
+    /* FIX: remove old listener */
+    if(chatRef) chatRef.off();
 
-        loadUsers();
+    document.getElementById("chat-box").innerHTML = "";
 
-        // إشعارات صوتية
-        db.ref('messages').on('child_changed', () => { document.getElementById('notif-sound').play(); });
-    }
+    chatRef = db.ref("messages/" + idChat).limitToLast(50);
 
-    function loadUsers() {
-        db.ref('users').on('value', snap => {
-            const box = document.getElementById('users-list-box');
-            box.innerHTML = "";
-            snap.forEach(u => {
-                const user = u.val();
-                if(user.id === me.id) return;
-                
-                db.ref(`unread/${me.id}/${user.id}`).on('value', c => {
-                    const count = c.val() || 0;
-                    box.innerHTML += `
-                        <div class="user-row" onclick="openChat('${user.id}', '${user.name}', '${user.pfp}')">
-                            <img src="${user.pfp}" class="pfp">
-                            <div style="flex:1"><b>${user.name}</b></div>
-                            ${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}
-                        </div>`;
-                });
-            });
-        });
-    }
+    chatRef.on("child_added", snap=>{
+        const d = snap.val();
+        const box = document.getElementById("chat-box");
 
-    // --- الشات والرسائل ---
-    function openChat(id, name, pfp) {
-        targetID = id;
-        activeChatID = [me.id, id].sort().join("_");
-        document.getElementById('chat-ui').style.display = 'flex';
-        document.getElementById('chat-user-name').innerText = name;
-        document.getElementById('chat-pfp').src = pfp;
+        box.innerHTML += `
+            <div class="bubble ${d.sender===me.id?'b-me':'b-other'}">
+                ${d.content}
+            </div>
+        `;
 
-        db.ref(`unread/${me.id}/${id}`).set(0);
+        box.scrollTop = box.scrollHeight;
+    });
+}
 
-        // مراقبة الكتابة
-        db.ref(`typing/${targetID}/${me.id}`).on('value', s => {
-            document.getElementById('typing-info').style.display = s.val() ? 'block' : 'none';
-        });
+/* SEND */
+function send(){
+    const text = document.getElementById("msg").value;
+    if(!text) return;
 
-        db.ref('messages/' + activeChatID).on('value', snap => {
-            const box = document.getElementById('chat-msgs-box');
-            box.innerHTML = "";
-            snap.forEach(m => {
-                const d = m.val();
-                const isMe = d.sender === me.id;
-                let content = d.type === 'image' ? `<img src="${d.content}" class="msg-img">` : 
-                              d.type === 'voice' ? `<audio controls src="${d.content}" style="width:200px"></audio>` : d.content;
-                
-                box.innerHTML += `
-                    <div class="bubble ${isMe ? 'b-me' : 'b-other'}">
-                        ${content}
-                        <div style="text-align:left; font-size:10px; margin-top:5px; opacity:0.6">
-                            ${isMe ? `<i class="fas fa-check-double tick ${d.seen ? 'tick-seen' : ''}"></i>` : ''}
-                        </div>
-                    </div>`;
-                if(!isMe && !d.seen) db.ref(`messages/${activeChatID}/${m.key}`).update({ seen: true });
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
+    const idChat = chatId(me.id, activeChat);
 
-    function sendText() {
-        const val = document.getElementById('msg-input').value;
-        if(!val) return;
-        db.ref('messages/' + activeChatID).push({ sender: me.id, content: val, type: 'text', time: Date.now(), seen: false });
-        db.ref(`unread/${targetID}/${me.id}`).transaction(c => (c || 0) + 1);
-        document.getElementById('msg-input').value = "";
-    }
+    db.ref("messages/" + idChat).push({
+        sender: me.id,
+        content: text,
+        time: Date.now(),
+        seen:false
+    });
 
-    function sendImg(input) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            db.ref('messages/' + activeChatID).push({ sender: me.id, content: e.target.result, type: 'image', time: Date.now(), seen: false });
-            db.ref(`unread/${targetID}/${me.id}`).transaction(c => (c || 0) + 1);
-        };
-        reader.readAsDataURL(file);
-    }
+    document.getElementById("msg").value="";
+}
 
-    // --- الفويس ---
-    let rec; let chks = [];
-    async function toggleVoice() {
-        const btn = document.getElementById('mic-btn');
-        if(!rec || rec.state === 'inactive') {
-            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(s);
-            rec.start(); btn.style.color = 'red'; chks = [];
-            rec.ondataavailable = e => chks.push(e.data);
-            rec.onstop = () => {
-                const b = new Blob(chks, { type: 'audio/mp3' });
-                const r = new FileReader();
-                r.readAsDataURL(b);
-                r.onloadend = () => {
-                    db.ref('messages/' + activeChatID).push({ sender: me.id, content: r.result, type: 'voice', time: Date.now(), seen: false });
-                    db.ref(`unread/${targetID}/${me.id}`).transaction(c => (c || 0) + 1);
-                };
-            };
-        } else { rec.stop(); btn.style.color = '#8696a0'; }
-    }
+/* CLOSE CHAT */
+function closeChat(){
+    document.getElementById("chat-ui").style.display="none";
+}
 
-    function isTyping() {
-        db.ref(`typing/${me.id}/${targetID}`).set(true);
-        clearTimeout(window.tTimer);
-        window.tTimer = setTimeout(() => db.ref(`typing/${me.id}/${targetID}`).set(false), 2000);
-    }
+/* INIT */
+db.ref("users/" + me.id).set(me);
+loadUsers();
 
-    // --- الإدارة ---
-    function openAdmin() {
-        document.getElementById('admin-panel').style.display = 'block';
-        db.ref('users').on('value', snap => {
-            const div = document.getElementById('admin-users-list');
-            div.innerHTML = "";
-            snap.forEach(u => {
-                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span>${u.val().name}</span>
-                    <button onclick="db.ref('users/${u.key}').remove()" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">حذف</button>
-                </div>`;
-            });
-        });
-    }
-
-    function saveSiteName() {
-        const name = document.getElementById('site-name-input').value;
-        db.ref('settings').update({ siteName: name || "Tallah Star" });
-        Swal.fire('تم التحديث');
-    }
-
-    function applyTheme(t) { document.getElementById('main-body').className = 'theme-' + t; }
-    function toggleThemes() { document.getElementById('themes-bar').classList.toggle('hidden'); }
-    function closeChat() { document.getElementById('chat-ui').style.display = 'none'; }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-    function logout() { localStorage.clear(); location.reload(); }
 </script>
+
 </body>
 </html>
