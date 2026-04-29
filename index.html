@@ -3,271 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Najm WhatsApp Pro</title>
+    <title>Najm WhatsApp Ultra</title>
     
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Najm%20WhatsApp%22,%22display%22:%22standalone%22}">
-
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/ar.min.js"></script>
 
     <style>
-        :root { --wa-bg: #0b141a; --wa-header: #202c33; --wa-green: #00a884; --wa-text: #e9edef; --wa-muted: #8696a0; --wa-msg-me: #005c4b; --wa-msg-other: #202c33; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        :root { --wa-bg: #0b141a; --wa-header: #202c33; --wa-green: #00a884; --wa-text: #e9edef; --wa-muted: #8696a0; --wa-msg-me: #005c4b; --wa-msg-other: #202c33; --blue-check: #34b7f1; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: var(--wa-bg); color: var(--wa-text); height: 100vh; overflow: hidden; }
 
-        /* شاشة الدخول */
-        .auth-screen { position: fixed; inset: 0; background: var(--wa-bg); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: #222e35; width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; text-align: center; border-top: 4px solid var(--wa-green); }
-        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #2a3942; color: white; text-align: center; }
-        
-        /* الهيدر والقائمة */
-        header { background: var(--wa-header); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .dropdown { position: absolute; top: 55px; left: 10px; background: #233138; border-radius: 5px; display: none; flex-direction: column; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .menu-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #2a3942; }
+        /* القائمة المتقدمة */
+        .menu-drop { position: absolute; top: 50px; left: 10px; background: #233138; border-radius: 8px; display: none; flex-direction: column; z-index: 5000; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; }
+        .menu-item { padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #2a3942; transition: 0.2s; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .menu-item:hover { background: #182229; }
 
-        /* قائمة المستخدمين */
-        .user-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #222d34; cursor: pointer; }
-        .pfp-wrap { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin-left: 12px; background: #313d45; }
-        .pfp-wrap img { width: 100%; height: 100%; object-fit: cover; }
-        .user-meta { flex: 1; }
+        /* علامات الصح والوقت */
+        .status-icons { font-size: 12px; margin-right: 5px; }
+        .tick-single { color: var(--wa-muted); }
+        .tick-double { color: var(--wa-muted); }
+        .tick-read { color: var(--blue-check) !important; }
 
-        /* نافذة الشات */
-        #chat-window { position: fixed; inset: 0; background: var(--wa-bg); z-index: 5000; display: none; flex-direction: column; }
-        .chat-header { background: var(--wa-header); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-color: #0b141a; display: flex; flex-direction: column; gap: 8px; }
+        /* يكتب الآن */
+        .typing-indicator { color: var(--wa-green); font-style: italic; font-size: 13px; font-weight: bold; }
+
+        /* شاشة القفل */
+        #lock-screen { position: fixed; inset: 0; background: #0b141a; z-index: 20000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         
-        .msg-bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; position: relative; font-size: 15px; color: white; }
-        .sent { align-self: flex-end; background: var(--wa-msg-me); border-top-right-radius: 0; }
+        /* واجهة الدردشة */
+        #chat-window { position: fixed; inset: 0; background: var(--wa-bg); z-index: 3000; display: none; flex-direction: column; }
+        .chat-header { background: var(--wa-header); padding: 10px; display: flex; align-items: center; cursor: pointer; }
+        .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(11,20,26,0.94); background-blend-mode: darken; }
+        
+        .msg-bubble { max-width: 75%; padding: 8px 12px; border-radius: 12px; margin-bottom: 5px; position: relative; font-size: 15px; line-height: 1.4; }
+        .sent { align-self: flex-end; background: var(--wa-msg-me); border-top-right-radius: 0; margin-left: auto; }
         .received { align-self: flex-start; background: var(--wa-msg-other); border-top-left-radius: 0; }
-        .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; display: block; text-align: left; }
+        .msg-info { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; opacity: 0.7; margin-top: 4px; }
 
-        /* الإدخال */
-        .input-area { background: var(--wa-header); padding: 10px; display: flex; align-items: center; gap: 8px; }
-        #msg-input { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: white; outline: none; }
-        
-        /* لوحة التحكم */
-        .admin-panel { position: fixed; inset: 0; background: var(--wa-bg); z-index: 9000; display: none; padding: 20px; overflow-y: auto; }
-        .admin-card { background: #1c282f; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-right: 4px solid var(--wa-green); }
-        
         .hidden { display: none !important; }
-        .fab { position: fixed; bottom: 20px; left: 20px; width: 55px; height: 55px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #111; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="auth-panel" class="auth-screen">
-    <div class="auth-card">
-        <h2 style="color:var(--wa-green); margin-bottom:15px">Najm WhatsApp</h2>
-        <input type="password" id="login-code" class="auth-input" placeholder="أدخل كود الدخول">
-        <button onclick="performAuth()" style="width:100%; padding:12px; background:var(--wa-green); border:none; border-radius:8px; font-weight:bold; cursor:pointer">دخول</button>
-        <p id="error-msg" style="color:red; margin-top:10px; display:none">الكود غير صحيح!</p>
-    </div>
+<div id="lock-screen">
+    <i class="fas fa-lock" style="font-size: 50px; color: var(--wa-green); margin-bottom: 20px;"></i>
+    <input type="password" id="lock-pass" placeholder="أدخل كود فك القفل" style="padding:10px; border-radius:5px; border:none; text-align:center">
+    <button onclick="unlockApp()" style="margin-top:10px; padding:10px 20px; background:var(--wa-green); border:none; border-radius:5px; cursor:pointer">فتح التطبيق</button>
 </div>
 
-<div id="main-app" class="hidden" style="flex-direction:column; height:100vh">
-    <header>
-        <b style="font-size:20px; color:var(--wa-muted)">Najm WhatsApp</b>
-        <div style="display:flex; gap:20px; color:var(--wa-muted); font-size:18px; position:relative">
-            <i class="fas fa-crown hidden" id="king-btn" onclick="toggleAdmin(true)" style="color:gold"></i>
-            <i class="fas fa-ellipsis-v" onclick="toggleMenu()"></i>
-            <div id="drop-menu" class="dropdown">
-                <div class="menu-item" onclick="logout()">تسجيل الخروج</div>
+<div id="app-container" style="display: flex; flex-direction: column; height: 100vh;">
+    <header style="background: var(--wa-header); padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <b style="font-size: 20px; color: #8696a0;">Najm WhatsApp</b>
+        <div style="display:flex; gap:20px; color:#8696a0; font-size:18px; position:relative">
+            <i class="fas fa-search"></i>
+            <i class="fas fa-ellipsis-v" onclick="toggleMainBtn()"></i>
+            <div id="main-menu" class="menu-drop">
+                <div class="menu-item" onclick="Swal.fire('مجموعة جديدة','تم تفعيل الطلب','success')"><i class="fas fa-users"></i> مجموعة جديدة</div>
+                <div class="menu-item" onclick="Swal.fire('الرسائل المميزة','لا توجد رسائل حالياً','info')"><i class="fas fa-star"></i> الرسائل المميزة</div>
+                <div class="menu-item" onclick="markAllAsRead()"><i class="fas fa-check-double"></i> تمييز الكل كمقروء</div>
+                <div class="menu-item" onclick="lockApp()"><i class="fas fa-user-shield"></i> قفل التطبيق</div>
+                <div class="menu-item" onclick="toggleAdmin(true)" id="king-menu"><i class="fas fa-crown"></i> لوحة المالك</div>
+                <div class="menu-item" style="color:red" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
             </div>
         </div>
     </header>
-    <div id="chats-list" style="flex:1; overflow-y:auto"></div>
+
+    <div id="user-list" style="flex:1; overflow-y:auto"></div>
 </div>
 
 <div id="chat-window">
     <div class="chat-header">
-        <i class="fas fa-arrow-right" onclick="closeChat()" style="padding:10px"></i>
-        <div class="pfp-wrap" style="width:40px; height:40px; margin:0"><img id="chat-pfp" src=""></div>
+        <i class="fas fa-arrow-right" onclick="closeChat()" style="margin: 0 10px;"></i>
+        <img id="chat-pfp" src="" style="width:40px; height:40px; border-radius:50%; margin-left:10px">
         <div style="flex:1">
             <b id="chat-name"></b><br>
-            <small id="chat-status" style="color:var(--wa-green)">متصل الآن</small>
+            <small id="chat-status-text" style="color: var(--wa-green);">متصل الآن</small>
         </div>
     </div>
-    <div id="chat-messages" class="chat-body"></div>
-    <div class="input-area">
-        <label for="img-upload"><i class="fas fa-camera" style="font-size:20px; color:var(--wa-muted); cursor:pointer"></i></label>
-        <input type="file" id="img-upload" class="hidden" accept="image/*">
-        <input type="text" id="msg-input" placeholder="رسالة">
-        <button onclick="sendMessage()" style="background:var(--wa-green); border:none; width:40px; height:40px; border-radius:50%"><i class="fas fa-paper-plane"></i></button>
-    </div>
-</div>
-
-<div id="admin-panel" class="admin-panel">
-    <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-        <h3>لوحة المالك نجم 👑</h3>
-        <i class="fas fa-times" onclick="toggleAdmin(false)"></i>
-    </div>
-    <div class="admin-card">
-        <b>إضافة مستخدم</b>
-        <input type="text" id="u-name" class="auth-input" placeholder="الاسم">
-        <input type="tel" id="u-phone" class="auth-input" placeholder="الرقم">
-        <input type="text" id="u-code" class="auth-input" placeholder="كود الدخول">
-        <button class="auth-btn" style="width:100%; background:var(--wa-green); border:none; padding:10px; border-radius:5px" onclick="addUser()">إضافة</button>
+    <div id="chat-messages" class="chat-body" style="display:flex; flex-direction:column"></div>
+    <div class="input-area" style="background:#202c33; padding:10px; display:flex; align-items:center; gap:10px">
+        <input type="text" id="msg-input" placeholder="رسالة" style="flex:1; padding:10px; border-radius:20px; border:none; background:#2a3942; color:white; outline:none">
+        <button onclick="sendMsg()" style="background:var(--wa-green); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
 <script>
-// ================= FIREBASE =================
-// تم الربط بقاعدة بياناتك الموضحة في الصور
-const firebaseConfig = {
-  databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/"
-};
+// ================= CONFIG =================
+const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+moment.locale('ar-sa');
 
-// ================= STATE =================
-let user = JSON.parse(localStorage.getItem('najm_pro_session'));
-let activeChatID = null;
+let me = JSON.parse(localStorage.getItem('najm_pro_session'));
+let activeID = null;
 
-// ================= AUTH (تم تطويره ليدعم كود المالك 248) =================
-function performAuth(){
-    const input = document.getElementById('login-code').value;
+// ================= AUTH & LOCK =================
+if(!me) location.href = 'login.html'; // أو شاشة الدخول بتاعتك
 
-    if(input === "248") { // كود المالك المباشر
-        const admin = { name: "المالك نجم 👑", phone: "admin_star", role: "admin", loginCode: "248" };
-        saveSession(admin);
-        return;
-    }
-
-    db.ref('users').once('value', snap=>{
-        let found = false;
-        snap.forEach(child=>{
-            const u = child.val();
-            if(u.loginCode === input || (u.phone === input && u.password === input)){
-                saveSession(u);
-                found = true;
-            }
-        });
-        if(!found) document.getElementById('error-msg').style.display='block';
-    });
+function lockApp() { 
+    localStorage.setItem('app_locked', 'true');
+    document.getElementById('lock-screen').style.display = 'flex';
 }
 
-function saveSession(data){
-    localStorage.setItem('najm_pro_session', JSON.stringify(data));
-    location.reload();
-}
-
-// ================= INIT =================
-if(user){
-    document.getElementById('auth-panel').style.display='none';
-    document.getElementById('main-app').style.display='flex';
-    if(user.role === 'admin') document.getElementById('king-btn').classList.remove('hidden');
-    initMain();
-    setOnline(true);
-}
-
-function setOnline(status){
-    if(user.phone !== "admin_star") {
-        db.ref('users/'+user.phone).update({ online: status, lastSeen: Date.now() });
+function unlockApp() {
+    if(document.getElementById('lock-pass').value === me.loginCode) {
+        document.getElementById('lock-screen').style.display = 'none';
+        localStorage.removeItem('app_locked');
+    } else {
+        Swal.fire('خطأ','الكود غير صحيح','error');
     }
 }
 
-// ================= LOAD USERS =================
-function initMain(){
-    db.ref('users').on('value', snap=>{
-        const list = document.getElementById('chats-list');
+// ================= REAL-TIME ENGINE =================
+function init() {
+    if(localStorage.getItem('app_locked')) lockApp();
+    
+    // 1. تحديث الظهور اللحظي
+    db.ref('users/'+me.phone).update({ online: true, lastSeen: Date.now() });
+    db.ref('users/'+me.phone).onDisconnect().update({ online: false, lastSeen: Date.now() });
+
+    // 2. قائمة المستخدمين مع "يكتب الآن"
+    db.ref('users').on('value', snap => {
+        const list = document.getElementById('user-list');
         list.innerHTML = "";
-        snap.forEach(child=>{
+        snap.forEach(child => {
             const u = child.val();
-            if(u.phone === user.phone) return;
+            if(u.phone === me.phone) return;
+            
             list.innerHTML += `
-            <div class="user-row" onclick="openChat('${u.phone}','${u.name}','${u.pfp}')">
-                <div class="pfp-wrap"><img src="${u.pfp}"></div>
-                <div class="user-meta">
-                    <div style="display:flex; justify-content:space-between">
-                        <span class="user-name">${u.name}</span>
-                        <small style="color:var(--wa-muted)">${formatTime(u.lastSeen)}</small>
-                    </div>
-                    <div class="user-status">${u.online ? '🟢 متصل الآن' : 'آخر ظهور: ' + formatTime(u.lastSeen)}</div>
+            <div class="user-row" onclick="openChat('${u.phone}','${u.name}','${u.pfp}')" style="display:flex; align-items:center; padding:15px; border-bottom:1px solid #222d34; cursor:pointer">
+                <img src="${u.pfp}" style="width:55px; height:55px; border-radius:50%; margin-left:15px">
+                <div style="flex:1">
+                    <div style="display:flex; justify-content:space-between"><b>${u.name}</b> <small style="color:#8696a0">${moment(u.lastSeen).fromNow()}</small></div>
+                    <div id="list-status-${u.phone}" style="font-size:13px; color:#8696a0">${u.online ? '<span style="color:#00a884">متصل الآن</span>' : 'أخر ظهور ' + moment(u.lastSeen).calendar()}</div>
                 </div>
             </div>`;
         });
     });
 }
 
-// ================= OPEN CHAT =================
-function openChat(id,name,pfp){
-    activeChatID = [user.phone,id].sort().join("_");
-    document.getElementById('chat-window').style.display='flex';
-    document.getElementById('chat-name').innerText=name;
-    document.getElementById('chat-pfp').src=pfp;
+// ================= CHAT SYSTEM (The Beast Mode) =================
+function openChat(id, name, pfp) {
+    activeID = [me.phone, id].sort().join("_");
+    document.getElementById('chat-window').style.display = 'flex';
+    document.getElementById('chat-name').innerText = name;
+    document.getElementById('chat-pfp').src = pfp;
 
-    db.ref('messages/'+activeChatID).off();
-    db.ref('messages/'+activeChatID).on('value', snap=>{
-        const box = document.getElementById('chat-messages');
-        box.innerHTML="";
-        snap.forEach(m=>{
-            const msg = m.val();
-            const isMe = msg.sender === user.phone;
-            let statusIcon = isMe ? (msg.seen ? ' <i class="fas fa-check-double" style="color:#34b7f1"></i>' : ' <i class="fas fa-check"></i>') : "";
-
-            const div = document.createElement('div');
-            div.className="msg-bubble "+(isMe?'sent':'received');
-            
-            if(msg.image){
-                div.innerHTML = `<img src="${msg.image}" style="max-width:100%; border-radius:8px"><br><small class="msg-time">${formatTime(msg.time)}${statusIcon}</small>`;
-            } else {
-                div.innerHTML = `${msg.text}<small class="msg-time">${formatTime(msg.time)}${statusIcon}</small>`;
-            }
-            box.appendChild(div);
-        });
-        box.scrollTop = box.scrollHeight;
+    // اتبع نظام "يكتب الآن"
+    db.ref('typing/'+activeID+'/'+id).on('value', snap => {
+        document.getElementById('chat-status-text').innerText = snap.val() ? "يكتب الآن..." : "متصل الآن";
     });
 
-    // Mark as Seen
-    db.ref('messages/'+activeChatID).once('value', snap=>{
-        snap.forEach(m=>{
-            if(m.val().sender !== user.phone) db.ref('messages/'+activeChatID+'/'+m.key).update({seen:true});
+    // تحميل الرسائل بنظام الصح المتطور
+    db.ref('messages/'+activeID).on('value', snap => {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = "";
+        snap.forEach(m => {
+            const d = m.val();
+            const isMe = d.sender === me.phone;
+            
+            // تحديد أيقونة الصح
+            let ticks = '<i class="fas fa-check tick-single"></i>';
+            if(d.seen) ticks = '<i class="fas fa-check-double tick-read"></i>';
+            else if(d.delivered) ticks = '<i class="fas fa-check-double tick-double"></i>';
+
+            box.innerHTML += `
+            <div class="msg-bubble ${isMe ? 'sent' : 'received'}">
+                ${d.text}
+                <div class="msg-info">
+                    ${moment(d.time).format('h:mm a')}
+                    ${isMe ? ticks : ''}
+                </div>
+            </div>`;
+
+            // تحديث حالة القراءة لو أنا المستلم
+            if(!isMe && !d.seen) {
+                db.ref('messages/'+activeID+'/'+m.key).update({ seen: true });
+            }
         });
+        box.scrollTop = box.scrollHeight;
     });
 }
 
 // ================= ACTIONS =================
-function sendMessage(){
-    const inp = document.getElementById('msg-input');
-    if(!inp.value.trim() || !activeChatID) return;
-    db.ref('messages/'+activeChatID).push({ sender:user.phone, text:inp.value, time:Date.now(), seen:false });
-    inp.value="";
+function sendMsg() {
+    const txt = document.getElementById('msg-input').value;
+    if(!txt.trim()) return;
+    
+    db.ref('messages/'+activeID).push({
+        sender: me.phone,
+        text: txt,
+        time: Date.now(),
+        delivered: true,
+        seen: false
+    });
+    document.getElementById('msg-input').value = "";
 }
 
-document.getElementById('img-upload').addEventListener('change', function(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev)=>{
-        db.ref('messages/'+activeChatID).push({ sender:user.phone, image:ev.target.result, time:Date.now(), seen:false });
-    };
-    reader.readAsDataURL(file);
+// يكتب الآن
+document.getElementById('msg-input').addEventListener('input', () => {
+    db.ref('typing/'+activeID+'/'+me.phone).set(true);
+    clearTimeout(window.typingTimer);
+    window.typingTimer = setTimeout(() => {
+        db.ref('typing/'+activeID+'/'+me.phone).set(false);
+    }, 2000);
 });
 
-function addUser(){
-    const name=document.getElementById('u-name').value;
-    const phone=document.getElementById('u-phone').value;
-    const loginCode=document.getElementById('u-code').value;
-    db.ref('users/'+phone).set({ name, phone, loginCode, role:'user', online:false, lastSeen:Date.now(), pfp:'https://cdn-icons-png.flaticon.com/512/149/149071.png' })
-    .then(()=>Swal.fire('تم','المستخدم جاهز','success'));
-}
-
-function formatTime(t){
-    if(!t) return '';
-    const d = new Date(t);
-    return d.toLocaleTimeString('ar-EG',{hour:'2-digit', minute:'2-digit'});
-}
-
-function toggleAdmin(s){ document.getElementById('admin-panel').style.display = s?'block':'none'; }
-function toggleMenu(){ 
-    const m = document.getElementById('drop-menu');
+function toggleMainBtn() {
+    const m = document.getElementById('main-menu');
     m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
 }
-function logout(){ localStorage.clear(); location.reload(); }
-function closeChat(){ document.getElementById('chat-window').style.display='none'; }
+
+function closeChat() { document.getElementById('chat-window').style.display='none'; }
+function logout() { localStorage.clear(); location.reload(); }
+
+init();
 </script>
 </body>
 </html>
