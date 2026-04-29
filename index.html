@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="tab-title">Tallah Star | Black Diamond v18</title>
+    <title id="tab-title">Tallah Star | Diamond Stable</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -18,91 +18,59 @@
             --msg-other: #202c33; --glass: rgba(32, 44, 51, 0.9);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; position: relative; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* تأثيرات الزجاج والحركات */
+        /* ستايل Tallah Star الماسي (ثابت كما طلبت) */
         .glass-panel { backdrop-filter: blur(20px); background: var(--glass); border: 1px solid rgba(212,175,55,0.15); }
+        header { background: var(--hdr); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); z-index: 1000; }
+        .pfp-main { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; cursor: pointer; }
         
-        header { background: var(--hdr); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 1000; }
-        .pfp-main { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; cursor: pointer; transition: 0.4s; }
-        .pfp-main:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 0 20px var(--gold); }
-
-        /* بوابة الدخول والانتظار */
         .full-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1c282f 0%, #0b141a 100%); z-index: 100000; display: flex; align-items: center; justify-content: center; text-align: center; }
         .entry-card { padding: 40px; border-radius: 35px; width: 90%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,1); border: 1px solid rgba(212,175,55,0.2); }
 
-        /* الإعلان المنبثق */
-        #popup-ad { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200000; display: none; align-items: center; justify-content: center; padding: 25px; }
-
-        /* قائمة الدردشة */
-        .user-item { display: flex; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; cursor: pointer; transition: 0.3s ease; }
-        .user-item:hover { background: rgba(212,175,55,0.05); transform: scale(1.01); }
+        .user-item { display: flex; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; cursor: pointer; transition: 0.3s; }
+        .user-item:hover { background: rgba(212,175,55,0.05); }
         .pfp-list { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; border: 1.5px solid #333; object-fit: cover; }
-        .unread-dot { background: var(--green); color: white; border-radius: 50%; min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-right: auto; box-shadow: 0 0 12px var(--green); }
-
-        /* الشات */
+        
         #chat-ui { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; flex-direction: column; }
         .chat-wallpaper { flex: 1; overflow-y: auto; padding: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(0,0,0,0.95); background-blend-mode: darken; display: flex; flex-direction: column; }
         
-        .msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 15px; margin-bottom: 8px; position: relative; font-size: 15px; animation: bounceInUp 0.4s; }
+        .msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 15px; margin-bottom: 8px; position: relative; font-size: 15px; animation: fadeInUp 0.3s; }
         .msg-me { background: var(--msg-me); align-self: flex-end; border-top-right-radius: 2px; }
         .msg-other { background: var(--msg-other); align-self: flex-start; border-top-left-radius: 2px; }
-        .msg-time { font-size: 10px; opacity: 0.5; display: block; margin-top: 4px; text-align: left; }
-
-        /* ميزة الريكورد */
-        .voice-container { display: flex; align-items: center; gap: 10px; color: var(--gold); font-weight: bold; min-width: 160px; }
-        .voice-play { font-size: 24px; cursor: pointer; transition: 0.2s; }
-        .voice-play:hover { transform: scale(1.2); }
-
-        /* الفوتر الاحترافي */
+        
         .footer-bar { background: var(--hdr); padding: 10px 15px; display: flex; align-items: center; gap: 12px; }
-        #msg-input { flex: 1; background: #2a3942; border: none; padding: 12px 20px; border-radius: 30px; color: white; font-size: 15px; }
+        input[type="text"] { flex: 1; background: #2a3942; border: none; padding: 12px 20px; border-radius: 30px; color: white; outline: none; }
 
-        .typing-txt { font-size: 12px; color: var(--green); display: none; margin-bottom: 2px; font-weight: bold; }
-
-        /* لوحة التحكم */
         .admin-main { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; padding: 20px; overflow-y: auto; }
         .card-gold { background: linear-gradient(145deg, #1c282f, #0b141a); padding: 20px; border-radius: 20px; border-left: 4px solid var(--gold); margin-bottom: 20px; }
-        .btn-action { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-gold { background: var(--gold); color: black; }
-        .btn-gold:hover { filter: brightness(1.2); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
-
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        
+        .req-notif { background: #ff4d4d; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 5px; animation: pulse 1s infinite; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
-
-<div id="popup-ad">
-    <div class="entry-card glass-panel animate__animated animate__backInDown">
-        <i class="fas fa-gem" style="color:var(--gold); font-size:55px;"></i>
-        <h2 id="ad-title" style="color:var(--gold); margin:20px 0;"></h2>
-        <p id="ad-body" style="color:white; line-height:1.7;"></p>
-        <button class="btn-action btn-gold" onclick="closeAd()">استلام العرض</button>
-    </div>
-</div>
+<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
 <div id="wait-screen" class="full-overlay hidden">
     <div class="entry-card glass-panel animate__animated animate__pulse animate__infinite">
-        <i class="fas fa-hourglass-start" style="color:var(--gold); font-size:60px;"></i>
-        <h2 style="color:white; margin-top:25px;">طلبك تحت المراجعة</h2>
-        <p style="color:gray; margin-top:10px;">يا بطل، الإمبراطور لازم يوافق عليك الأول..<br>أول ما يوافق، الموقع هيفتح معاك فوراً.</p>
+        <i class="fas fa-crown" style="color:var(--gold); font-size:60px;"></i>
+        <h2 style="color:white; margin-top:25px;">في انتظار موافقة الإمبراطور</h2>
+        <p style="color:gray; margin-top:10px;">طلبك وصل لـ Tallah Star.. افتح الموقع كمان شوية.</p>
     </div>
 </div>
 
 <div id="gate" class="full-overlay hidden">
     <div class="entry-card glass-panel animate__animated animate__zoomIn">
-        <h1 id="gate-name" style="color:var(--gold); font-size:32px;">TALLAH STAR</h1>
+        <h1 style="color:var(--gold); font-size:32px;">TALLAH STAR</h1>
         <p style="color:gray; font-size:12px; margin-bottom:30px;">BLACK DIAMOND EDITION</p>
-        
-        <input type="password" id="pass-code" placeholder="كود الدخول الماسي" style="text-align:center; padding:15px; width:100%; border-radius:15px; border:none; background:#2a3942; color:white; font-size:18px; margin-bottom:15px;">
-        <button class="btn-action btn-gold" onclick="login()">دخول النظام</button>
-        
-        <div style="margin:25px 0; color:gray; font-size:14px; opacity:0.3;">أو انضم إلينا كعضو جديد</div>
-        
-        <input type="text" id="join-name" placeholder="ادخل اسمك الكامل" style="width:100%; padding:12px; border-radius:12px; background:#2a3942; color:white; border:none; margin-bottom:10px; text-align:center;">
-        <button onclick="sendJoinRequest()" style="background:transparent; border:1px solid var(--green); color:var(--green); width:100%; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">إرسال طلب انضمام</button>
+        <input type="password" id="pass-code" placeholder="كود الدخول">
+        <button class="btn-gold" onclick="login()">دخول</button>
+        <hr style="margin:20px 0; opacity:0.1">
+        <input type="text" id="join-name" placeholder="اسمك لطلب الانضمام" style="width:100%; padding:12px; border-radius:12px; background:#2a3942; color:white; border:none; margin-bottom:10px;">
+        <button onclick="sendJoinRequest()" style="background:transparent; border:1px solid var(--green); color:var(--green); width:100%; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">إرسال طلب انضمام</button>
     </div>
 </div>
 
@@ -111,320 +79,218 @@
         <div style="display:flex; align-items:center; gap:12px;">
             <img id="my-pfp" class="pfp-main" onclick="document.getElementById('pfp-input').click()">
             <input type="file" id="pfp-input" hidden onchange="uploadMyPfp(this)">
-            <b id="site-name-display" style="color:var(--gold); font-size:20px;">Tallah Star</b>
+            <b id="site-name-display" style="color:var(--gold); font-size:18px;">Tallah Star</b>
         </div>
-        <div style="display:flex; gap:22px; align-items:center;">
-            <i class="fas fa-crown" id="crown-btn" onclick="openAdmin()" style="color:var(--gold); font-size:24px; cursor:pointer;"></i>
-            <i class="fas fa-sign-out-alt" onclick="logout()" style="color:#ff4d4d; font-size:22px; cursor:pointer;"></i>
+        <div>
+            <span id="req-count-badge" class="req-notif hidden">طلب جديد!</span>
+            <i class="fas fa-user-shield" id="admin-btn" onclick="openAdmin()" style="color:var(--gold); font-size:22px; cursor:pointer;"></i>
+            <i class="fas fa-power-off" onclick="logout()" style="color:#ff4d4d; margin-right:15px; cursor:pointer;"></i>
         </div>
     </header>
 
-    <div style="height:calc(100vh - 75px); overflow-y:auto;">
-        <div class="user-item" onclick="openChannel()" style="background:rgba(212,175,55,0.08); border-bottom:2px solid var(--gold);">
-            <div style="background:var(--gold); width:55px; height:55px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-left:15px; box-shadow: 0 0 15px var(--gold);">
-                <i class="fas fa-bullhorn" style="color:black; font-size:22px;"></i>
+    <div id="users-list-box" style="height:calc(100vh - 75px); overflow-y:auto;">
+        <div class="user-item" onclick="openChannel()" style="background:rgba(212,175,55,0.1);">
+            <div style="background:var(--gold); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-left:15px;">
+                <i class="fas fa-bullhorn" style="color:black;"></i>
             </div>
-            <div>
-                <b style="color:var(--gold); font-size:17px;">قناة طلة الرسمية ✅</b>
-                <p style="font-size:12px; color:gray;">آخر الأخبار والعروض الماسية</p>
-            </div>
+            <b>قناة طلة الرسمية ✅</b>
         </div>
-        <div id="users-container"></div>
+        <div id="dynamic-users"></div>
     </div>
 </div>
 
 <div id="chat-ui">
-    <div class="glass-panel" style="padding:12px 18px; display:flex; align-items:center; gap:12px;">
-        <i class="fas fa-arrow-right" onclick="closeChat()" style="font-size:22px; cursor:pointer;"></i>
-        <img id="active-pfp" class="pfp-list" style="width:45px; height:45px; margin:0; border:2px solid var(--gold);">
+    <div class="glass-panel" style="padding:10px 15px; display:flex; align-items:center; gap:12px;">
+        <i class="fas fa-chevron-right" onclick="closeChat()" style="cursor:pointer;"></i>
+        <img id="chat-pfp" class="pfp-list" style="width:40px; height:40px; margin:0;">
         <div style="flex:1">
-            <b id="active-name" style="font-size:17px;"></b>
-            <div id="typing-status" class="typing-txt">جاري الكتابة الآن...</div>
+            <b id="chat-name"></b>
+            <div id="typing-status" style="font-size:11px; color:var(--green); display:none;">جاري الكتابة...</div>
         </div>
     </div>
     <div id="msg-box" class="chat-wallpaper"></div>
     <div class="footer-bar">
-        <label for="img-upload"><i class="fas fa-image" style="font-size:24px; color:var(--blue); cursor:pointer;"></i></label>
-        <input type="file" id="img-upload" hidden onchange="sendImage(this)">
-        <input type="text" id="msg-input" placeholder="اكتب رسالة فخمة..." oninput="handleTyping()">
-        <i class="fas fa-microphone" id="mic-btn" style="font-size:24px; color:var(--gold); cursor:pointer;" onclick="sendVoice()"></i>
-        <i class="fas fa-paper-plane" style="font-size:28px; color:var(--green); cursor:pointer;" onclick="sendText()"></i>
+        <input type="text" id="msg-input" placeholder="رسالتك هنا..." oninput="handleTyping()">
+        <i class="fas fa-paper-plane" onclick="sendText()" style="color:var(--green); font-size:24px; cursor:pointer;"></i>
     </div>
 </div>
 
 <div id="admin-panel" class="admin-main">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <h2 style="color:var(--gold);"><i class="fas fa-user-shield"></i> لوحة التحكم العليا</h2>
-        <button onclick="closeAdmin()" class="btn-action btn-gold" style="width:auto; padding:8px 20px;">خروج</button>
+    <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <h2 style="color:var(--gold);">لوحة التحكم</h2>
+        <button onclick="closeAdmin()" class="btn-gold" style="width:auto; padding:5px 15px;">إغلاق</button>
     </div>
-
     <div class="card-gold">
-        <h4>📢 تحكم في الإعلان المنبثق</h4>
-        <input type="text" id="ad-title-in" placeholder="عنوان الإعلان">
-        <textarea id="ad-body-in" placeholder="نص الإعلان..." style="width:100%; background:#2a3942; border:none; margin-top:10px; color:white; padding:10px; border-radius:10px;"></textarea>
-        <button class="btn-action btn-gold" onclick="setAd(true)">تفعيل الإعلان</button>
-        <button onclick="setAd(false)" style="background:transparent; color:red; border:none; width:100%; margin-top:10px; cursor:pointer;">إيقاف الإعلان</button>
+        <h4>⚖️ طلبات الانضمام الجديدة</h4>
+        <div id="admin-reqs-list" style="margin-top:10px;"></div>
     </div>
-
     <div class="card-gold">
-        <h4>⚖️ طلبات الانضمام المعلقة</h4>
-        <div id="requests-list" style="margin-top:15px;"></div>
+        <h4>🚀 برودكاست للكل</h4>
+        <input type="text" id="bc-input" placeholder="رسالة للجميع...">
+        <button class="btn-gold" onclick="broadcast()">إرسال 🚀</button>
     </div>
-
     <div class="card-gold">
-        <h4>🚀 إرسال رسالة جماعية (Broadcast)</h4>
-        <input type="text" id="bc-msg-in" placeholder="اكتب رسالتك لكل الأعضاء...">
-        <button class="btn-action" style="background:var(--blue); color:white" onclick="broadcast()">إرسال طلقة واحدة 🚀</button>
-    </div>
-
-    <div class="card-gold">
-        <h4>🛠️ إعدادات الموقع</h4>
-        <input type="text" id="site-name-in" placeholder="تغيير اسم الموقع">
-        <button class="btn-action btn-gold" onclick="updateSiteName()">تحديث</button>
-    </div>
-
-    <div class="card-gold">
-        <h4>👥 الأعضاء</h4>
-        <div id="admin-users-list"></div>
+        <h4>👥 جميع الأعضاء</h4>
+        <div id="all-users-list"></div>
     </div>
 </div>
 
 <script>
-    // --- الربط بـ Firebase ---
     const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let me = JSON.parse(localStorage.getItem('tallah_diamond_v18'));
-    let myReqId = localStorage.getItem('tallah_req_id');
-    let activeChatKey, targetId, isChannelMode, typeTimer;
+    let me = JSON.parse(localStorage.getItem('tallah_auth_v18'));
+    let myReqId = localStorage.getItem('tallah_req_v18');
+    let activeChatKey, targetId, typeTimer;
 
-    // --- نظام الفحص والتشغيل ---
+    // --- نظام التشغيل الذكي ---
     if(me) {
         document.getElementById('app').classList.remove('hidden');
-        startMainSystem();
+        startEngine();
     } else if(myReqId) {
-        watchMyRequest();
+        document.getElementById('wait-screen').classList.remove('hidden');
+        checkMyReqStatus();
     } else {
         document.getElementById('gate').classList.remove('hidden');
     }
 
-    function startMainSystem() {
+    function startEngine() {
         document.getElementById('my-pfp').src = me.pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-        if(me.role !== 'admin') document.getElementById('crown-btn').classList.add('hidden');
-
-        db.ref('settings/siteName').on('value', s => {
-            const name = s.val() || "Tallah Star";
-            document.getElementById('site-name-display').innerText = name;
-            document.getElementById('gate-name').innerText = name;
-            document.getElementById('tab-title').innerText = name + " | Diamond";
-        });
-
-        db.ref('settings/ad').on('value', s => {
-            if(s.val()?.active) {
-                document.getElementById('popup-ad').style.display = 'flex';
-                document.getElementById('ad-title').innerText = s.val().title;
-                document.getElementById('ad-body').innerText = s.val().body;
-            }
-        });
-
+        if(me.role !== 'admin') document.getElementById('admin-btn').classList.add('hidden');
+        
         loadUsers();
+        listenForRequests(); // دي اللي كانت ناقصة عشان الإشعارات توصلك
     }
 
-    // --- الدخول والطلبات ---
+    // --- معالجة الطلبات (الأهم للإمبراطور) ---
     function sendJoinRequest() {
         const n = document.getElementById('join-name').value;
-        if(!n) return;
-        const ref = db.ref('join_requests').push({ name: n, status: 'pending' });
-        localStorage.setItem('tallah_req_id', ref.key);
+        if(!n) return Swal.fire('اكتب اسمك يا بطل');
+        const ref = db.ref('join_requests').push({ name: n, status: 'pending', time: Date.now() });
+        localStorage.setItem('tallah_req_v18', ref.key);
         location.reload();
     }
 
-    function watchMyRequest() {
-        document.getElementById('wait-screen').classList.remove('hidden');
-        db.ref('join_requests/'+myReqId).on('value', s => {
-            if(s.val()?.status === 'approved') {
-                localStorage.setItem('tallah_diamond_v18', JSON.stringify(s.val().userData));
-                localStorage.removeItem('tallah_req_id');
-                location.reload();
-            }
-        });
-    }
-
-    function login() {
-        const code = document.getElementById('pass-code').value;
-        if(code === "248") {
-            me = { uid:'admin', name:'الإمبراطور', role:'admin', pfp:'' };
-            localStorage.setItem('tallah_diamond_v18', JSON.stringify(me));
-            location.reload();
-        } else {
-            db.ref('users').once('value', s => {
-                let found = false;
-                s.forEach(u => { if(u.val().code === code) { me = u.val(); me.uid = u.key; found=true; } });
-                if(found) { localStorage.setItem('tallah_diamond_v18', JSON.stringify(me)); location.reload(); }
-                else Swal.fire('الكود غلط يا ملك');
-            });
-        }
-    }
-
-    // --- الشات والرسائل ---
-    function openChat(uid, name, pfp) {
-        isChannelMode = false; targetId = uid;
-        activeChatKey = [me.uid, uid].sort().join("_");
-        document.getElementById('chat-ui').style.display = 'flex';
-        document.getElementById('active-name').innerText = name;
-        document.getElementById('active-pfp').src = pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-        
-        db.ref(`unread/${me.uid}/${uid}`).set(0);
-        db.ref(`typing/${activeChatKey}/${targetId}`).on('value', s => {
-            document.getElementById('typing-status').style.display = s.val() ? 'block' : 'none';
-        });
-
-        listenToMessages('messages/' + activeChatKey);
-    }
-
-    function openChannel() {
-        isChannelMode = true;
-        document.getElementById('chat-ui').style.display = 'flex';
-        document.getElementById('active-name').innerText = "قناة طلة الرسمية";
-        document.getElementById('active-pfp').src = "https://cdn-icons-png.flaticon.com/512/1828/1828884.png";
-        listenToMessages('channel');
-    }
-
-    function listenToMessages(path) {
-        db.ref(path).on('value', snap => {
-            const box = document.getElementById('msg-box'); box.innerHTML = "";
-            snap.forEach(m => {
-                const d = m.val();
-                const time = new Date(d.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                let html = d.type === 'voice' ? `<div class="voice-container"><i class="fas fa-play-circle voice-play"></i> <span>🎤 ${d.content}</span></div>` : 
-                           (d.type === 'image' ? `<img src="${d.content}" style="width:100%; border-radius:10px;">` : d.content);
-                
-                box.innerHTML += `<div class="msg-bubble animate__animated animate__fadeInUp ${d.sender===me.uid?'msg-me':'msg-other'}">
-                                    ${html}
-                                    <span class="msg-time">${time}</span>
-                                  </div>`;
-            });
-            box.scrollTop = box.scrollHeight;
-            // صوت الإشعار لو الرسالة مش مني
-            const last = snap.val() ? Object.values(snap.val()).pop() : null;
-            if(last && last.sender !== me.uid) document.getElementById('notif-sound').play();
-        });
-    }
-
-    function sendText() {
-        const v = document.getElementById('msg-input').value; if(!v) return;
-        const path = isChannelMode ? 'channel' : 'messages/'+activeChatKey;
-        db.ref(path).push({ sender: me.uid, content: v, type: 'text', time: Date.now() });
-        if(!isChannelMode) db.ref(`unread/${targetId}/${me.uid}`).transaction(c => (c||0)+1);
-        document.getElementById('msg-input').value = "";
-    }
-
-    function handleTyping() {
-        if(isChannelMode) return;
-        db.ref(`typing/${activeChatKey}/${me.uid}`).set(true);
-        clearTimeout(typeTimer);
-        typeTimer = setTimeout(() => db.ref(`typing/${activeChatKey}/${me.uid}`).set(false), 2000);
-    }
-
-    function sendVoice() {
-        const path = isChannelMode ? 'channel' : 'messages/'+activeChatKey;
-        db.ref(path).push({ sender: me.uid, content: "ريكورد ماسي", type: 'voice', time: Date.now() });
-    }
-
-    function sendImage(input) {
-        const r = new FileReader();
-        r.onload = e => {
-            const path = isChannelMode ? 'channel' : 'messages/'+activeChatKey;
-            db.ref(path).push({ sender: me.uid, content: e.target.result, type: 'image', time: Date.now() });
-        };
-        r.readAsDataURL(input.files[0]);
-    }
-
-    // --- إدارة الإمبراطورية ---
-    function openAdmin() {
-        document.getElementById('admin-panel').style.display = 'block';
+    function listenForRequests() {
+        if(me.role !== 'admin') return;
         db.ref('join_requests').on('value', snap => {
-            const box = document.getElementById('requests-list'); box.innerHTML = "";
+            let count = 0;
+            const list = document.getElementById('admin-reqs-list');
+            list.innerHTML = "";
             snap.forEach(r => {
                 if(r.val().status === 'pending') {
-                    box.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    count++;
+                    list.innerHTML += `<div style="padding:10px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:10px; display:flex; justify-content:space-between;">
                         <span>${r.val().name}</span>
                         <button onclick="approve('${r.key}', '${r.val().name}')" style="color:var(--green); background:none; border:none; cursor:pointer;">قبول ✅</button>
                     </div>`;
                 }
             });
-        });
-
-        db.ref('users').on('value', s => {
-            const box = document.getElementById('admin-users-list'); box.innerHTML = "";
-            s.forEach(u => {
-                box.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; padding:10px; background:#2a3942; border-radius:10px;">
-                    <span>${u.val().name} (${u.val().code})</span>
-                    <i class="fas fa-trash" onclick="deleteUser('${u.key}')" style="color:red; cursor:pointer;"></i>
-                </div>`;
-            });
+            // تحديث بادج الإشعارات في الهيدر
+            const badge = document.getElementById('req-count-badge');
+            if(count > 0) {
+                badge.classList.remove('hidden');
+                badge.innerText = count + " طلب جديد!";
+                document.getElementById('notif-sound').play(); // رنة لما يوصل طلب
+            } else {
+                badge.classList.add('hidden');
+            }
         });
     }
 
-    async function approve(reqKey, name) {
-        const { value: code } = await Swal.fire({ title: 'تعيين كود العضو', input: 'text' });
+    async function approve(key, name) {
+        const { value: code } = await Swal.fire({ title: 'كود الدخول للعضو', input: 'text' });
         if(code) {
-            const newUser = { name: name, code: code, pfp: '', role: 'user' };
-            const ref = db.ref('users').push(newUser);
-            db.ref('join_requests/'+reqKey).update({ status: 'approved', userData: {...newUser, uid: ref.key} });
+            const newUser = { name: name, code: code, role: 'user', pfp: '' };
+            const uRef = db.ref('users').push(newUser);
+            db.ref('join_requests/'+key).update({ status: 'approved', userData: {...newUser, uid: uRef.key} });
+            Swal.fire('تم القبول بنجاح');
         }
     }
 
-    function setAd(active) {
-        const t = document.getElementById('ad-title-in').value;
-        const b = document.getElementById('ad-body-in').value;
-        db.ref('settings/ad').set({ title: t, body: b, active: active });
+    function checkMyReqStatus() {
+        db.ref('join_requests/'+myReqId).on('value', s => {
+            if(s.val()?.status === 'approved') {
+                localStorage.setItem('tallah_auth_v18', JSON.stringify(s.val().userData));
+                localStorage.removeItem('tallah_req_v18');
+                location.reload();
+            }
+        });
     }
 
-    function broadcast() {
-        const msg = document.getElementById('bc-msg-in').value;
-        db.ref('users').once('value', s => {
-            s.forEach(u => {
-                const p = [me.uid, u.key].sort().join("_");
-                db.ref('messages/'+p).push({ sender: me.uid, content: "💎 رسالة ملكية: " + msg, type: 'text', time: Date.now() });
-                db.ref(`unread/${u.key}/${me.uid}`).transaction(c => (c||0)+1);
-            });
+    // --- نظام الدردشة ---
+    function openChat(uid, name, pfp) {
+        targetId = uid;
+        activeChatKey = [me.uid, uid].sort().join("_");
+        document.getElementById('chat-ui').style.display = 'flex';
+        document.getElementById('chat-name').innerText = name;
+        document.getElementById('chat-pfp').src = pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+        
+        db.ref(`typing/${activeChatKey}/${targetId}`).on('value', s => {
+            document.getElementById('typing-status').style.display = s.val() ? 'block' : 'none';
         });
+
+        db.ref('messages/'+activeChatKey).on('value', snap => {
+            const box = document.getElementById('msg-box'); box.innerHTML = "";
+            snap.forEach(m => {
+                const d = m.val();
+                box.innerHTML += `<div class="msg-bubble ${d.sender===me.uid?'msg-me':'msg-other'}">${d.content}</div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function sendText() {
+        const v = document.getElementById('msg-input').value; if(!v) return;
+        db.ref('messages/'+activeChatKey).push({ sender: me.uid, content: v, time: Date.now() });
+        document.getElementById('msg-input').value = "";
+    }
+
+    function handleTyping() {
+        db.ref(`typing/${activeChatKey}/${me.uid}`).set(true);
+        clearTimeout(typeTimer);
+        typeTimer = setTimeout(() => db.ref(`typing/${activeChatKey}/${me.uid}`).set(false), 2000);
     }
 
     function loadUsers() {
         db.ref('users').on('value', snap => {
-            const box = document.getElementById('users-container'); box.innerHTML = "";
+            const box = document.getElementById('dynamic-users'); box.innerHTML = "";
+            const adminBox = document.getElementById('all-users-list'); if(adminBox) adminBox.innerHTML = "";
             snap.forEach(u => {
                 if(u.key === me.uid) return;
-                db.ref(`unread/${me.uid}/${u.key}`).on('value', c => {
-                    const count = c.val() || 0;
-                    box.innerHTML += `<div class="user-item" onclick="openChat('${u.key}', '${u.val().name}', '${u.val().pfp}')">
-                        <img src="${u.val().pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="pfp-list">
-                        <div style="flex:1"><b>${u.val().name}</b></div>
-                        ${count > 0 ? `<div class="unread-dot animate__animated animate__bounceIn">${count}</div>` : ''}
-                    </div>`;
-                });
+                box.innerHTML += `<div class="user-item" onclick="openChat('${u.key}', '${u.val().name}', '${u.val().pfp}')">
+                    <img src="${u.val().pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="pfp-list">
+                    <b>${u.val().name}</b>
+                </div>`;
+                if(adminBox) adminBox.innerHTML += `<div style="padding:5px;">${u.val().name} (${u.val().code})</div>`;
             });
         });
     }
 
-    function uploadMyPfp(i) {
-        const r = new FileReader();
-        r.onload = e => {
-            me.pfp = e.target.result;
-            document.getElementById('my-pfp').src = me.pfp;
-            db.ref('users/'+me.uid).update({ pfp: me.pfp });
-            localStorage.setItem('tallah_diamond_v18', JSON.stringify(me));
-        };
-        r.readAsDataURL(i.files[0]);
+    function login() {
+        const c = document.getElementById('pass-code').value;
+        if(c === "248") { // كود الإمبراطور
+            me = { uid:'admin', name:'الإمبراطور', role:'admin', pfp:'' };
+            localStorage.setItem('tallah_auth_v18', JSON.stringify(me));
+            location.reload();
+        } else {
+            db.ref('users').once('value', s => {
+                s.forEach(u => {
+                    if(u.val().code === c) {
+                        me = u.val(); me.uid = u.key;
+                        localStorage.setItem('tallah_auth_v18', JSON.stringify(me));
+                        location.reload();
+                    }
+                });
+            });
+        }
     }
 
-    function closeChat() { document.getElementById('chat-ui').style.display='none'; }
-    function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
-    function closeAd() { document.getElementById('popup-ad').style.display='none'; }
     function logout() { localStorage.clear(); location.reload(); }
+    function closeChat() { document.getElementById('chat-ui').style.display='none'; }
+    function openAdmin() { document.getElementById('admin-panel').style.display='block'; }
+    function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
 </script>
 </body>
 </html>
