@@ -3,44 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="tab-title">Tallah Star | Omega v13</title>
+    <title id="tab-title">Tallah Star | Black Diamond</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <style>
         :root {
             --bg: #0b141a; --hdr: #202c33; --green: #00a884;
             --text: #e9edef; --gold: #d4af37; --blue: #20adff; --msg-me: #005c4b;
+            --msg-other: #202c33;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        header { background: var(--hdr); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111b21; }
-        .pfp-main { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); cursor: pointer; }
+        /* الهيدر البريميوم */
+        header { background: var(--hdr); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 100; }
+        .pfp-main { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; transition: 0.3s; cursor: pointer; }
+        .pfp-main:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--gold); }
+
+        /* القائمة */
+        .user-row { display: flex; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; cursor: pointer; transition: 0.2s; }
+        .user-row:hover { background: rgba(255,255,255,0.05); }
+        .pfp-list { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; object-fit: cover; background: #222; }
+        .unread-badge { background: var(--green); color: white; border-radius: 50%; min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 
         /* القناة المثبتة */
-        .pinned-channel { background: linear-gradient(90deg, #1c282f, #0b141a); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; align-items: center; cursor: pointer; }
-        
-        .user-row { display: flex; padding: 15px; border-bottom: 1px solid #222d34; align-items: center; cursor: pointer; position: relative; }
-        .pfp-list { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; object-fit: cover; }
-        .unread-badge { background: var(--green); color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-right: auto; }
+        .pinned-box { background: linear-gradient(135deg, #1c282f 0%, #0b141a 100%); margin: 10px; border-radius: 15px; border: 1px solid var(--gold); padding: 15px; display: flex; align-items: center; cursor: pointer; position: relative; overflow: hidden; }
+        .pinned-box::after { content: 'OFFICIAL'; position: absolute; top: 5px; left: -20px; background: var(--gold); color: black; font-size: 9px; font-weight: bold; padding: 2px 20px; transform: rotate(-45deg); }
 
+        /* شاشة الشات */
         #chat-ui { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; flex-direction: column; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(0,0,0,0.95); background-blend-mode: darken; display: flex; flex-direction: column; }
-        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 15px; word-wrap: break-word; }
-        .b-me { background: var(--msg-me); align-self: flex-end; border-top-right-radius: 0; }
-        .b-other { background: var(--hdr); align-self: flex-start; border-top-left-radius: 0; }
-        .msg-media { width: 100%; border-radius: 8px; margin-top: 5px; max-height: 300px; object-fit: cover; }
+        .chat-body { flex: 1; overflow-y: auto; padding: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(0,0,0,0.94); background-blend-mode: darken; display: flex; flex-direction: column; }
+        .bubble { max-width: 75%; padding: 12px; border-radius: 15px; margin-bottom: 10px; font-size: 15px; position: relative; animation: fadeInRight 0.3s; }
+        .b-me { background: var(--msg-me); align-self: flex-end; border-top-right-radius: 2px; }
+        .b-other { background: var(--msg-other); align-self: flex-start; border-top-left-radius: 2px; }
+        .msg-media { width: 100%; border-radius: 10px; margin-top: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .time-tag { font-size: 10px; opacity: 0.6; display: block; margin-top: 5px; text-align: left; }
 
-        .admin-panel { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; padding: 20px; overflow-y: auto; }
-        .admin-card { background: #1c282f; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--gold); }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 5px; }
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: none; background: #2a3942; color: white; }
+        /* الفوتر البريميوم */
+        .chat-footer { background: var(--hdr); padding: 10px 15px; display: flex; align-items: center; gap: 12px; }
+        .input-pill { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 30px; color: white; outline: none; font-size: 15px; }
 
-        #popup-ad { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; }
+        /* لوحة التحكم الملكية */
+        .admin-panel { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; padding: 25px; overflow-y: auto; }
+        .admin-card { background: #1c282f; padding: 20px; border-radius: 20px; margin-bottom: 20px; border-left: 5px solid var(--gold); }
+        .btn-action { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-gold { background: var(--gold); color: black; }
+        .btn-gold:hover { filter: brightness(1.2); }
+
+        .typing-indicator { font-size: 12px; color: var(--green); margin-bottom: 5px; display: none; }
+        
         .hidden { display: none !important; }
     </style>
 </head>
@@ -49,108 +65,135 @@
 <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
 <div id="popup-ad">
-    <div style="background:#1c282f; padding:30px; border-radius:20px; border:2px solid var(--gold); text-align:center; width:100%; max-width:400px;">
-        <h2 id="ad-title" style="color:var(--gold)"></h2>
-        <p id="ad-body" style="margin:20px 0"></p>
-        <button class="btn-gold" onclick="document.getElementById('popup-ad').style.display='none'">استلام</button>
+    <div class="animate__animated animate__zoomIn" style="background:#1c282f; padding:35px; border-radius:25px; border:2px solid var(--gold); text-align:center; width:100%; max-width:400px; box-shadow: 0 0 30px rgba(212,175,55,0.3);">
+        <i class="fas fa-gem" style="color:var(--gold); font-size:40px; margin-bottom:15px;"></i>
+        <h2 id="ad-title" style="color:var(--gold); margin-bottom:10px;"></h2>
+        <p id="ad-body" style="color:#cfd8dc; line-height:1.6;"></p>
+        <button class="btn-action btn-gold" onclick="document.getElementById('popup-ad').style.display='none'">استلام العرض</button>
     </div>
 </div>
 
-<div id="gate" style="position:fixed; inset:0; background:var(--bg); z-index:100000; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#1c282f; padding:30px; border-radius:25px; width:90%; max-width:400px; text-align:center; border-top: 5px solid var(--gold);">
-        <h1 id="gate-name" style="color:var(--gold)">Tallah Star</h1>
-        <input type="password" id="entry-code" placeholder="كود الدخول الملكي">
-        <button class="btn-gold" onclick="attemptLogin()">دخول</button>
-        <hr style="opacity:0.1; margin:20px 0;">
-        <input type="text" id="req-name" placeholder="اسمك لطلب انضمام">
-        <button style="background:var(--green); color:white; width:100%; padding:12px; border-radius:10px; border:none; font-weight:bold;" onclick="requestJoin()">طلب انضمام</button>
+<div id="gate" style="position:fixed; inset:0; background:var(--bg); z-index:100000; display:flex; align-items:center; justify-content:center; background: radial-gradient(circle, #1c282f 0%, #0b141a 100%);">
+    <div class="animate__animated animate__fadeInUp" style="background:rgba(32,44,51,0.9); padding:40px; border-radius:30px; width:90%; max-width:420px; text-align:center; border: 1px solid rgba(212,175,55,0.2); backdrop-filter: blur(10px);">
+        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="gate-logo" style="width:80px; height:80px; margin-bottom:20px; border-radius:50%; border:2px solid var(--gold);">
+        <h1 id="gate-name" style="color:var(--gold); font-size:28px; letter-spacing:1px;">TALLAH STAR</h1>
+        <p style="color:gray; font-size:13px; margin-bottom:25px;">الإصدار الماسي | Black Diamond</p>
+        
+        <input type="password" id="entry-code" placeholder="كود الدخول الملكي" style="width:100%; padding:15px; border-radius:15px; border:none; background:#2a3942; color:white; text-align:center; font-size:18px; margin-bottom:15px;">
+        <button class="btn-action btn-gold" onclick="attemptLogin()">دخول النظام</button>
+        
+        <div style="margin:25px 0; display:flex; align-items:center; gap:10px; opacity:0.3;"><hr style="flex:1"><span>أو</span><hr style="flex:1"></div>
+        
+        <input type="text" id="req-name" placeholder="الاسم الكامل" style="width:100%; padding:12px; border-radius:12px; border:none; background:#2a3942; color:white; text-align:center; margin-bottom:10px;">
+        <button style="background:transparent; color:var(--green); border:1px solid var(--green); width:100%; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;" onclick="requestJoin()">طلب انضمام جديد</button>
     </div>
 </div>
 
 <div id="app" class="hidden">
     <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <img id="my-pfp" class="pfp-main" onclick="document.getElementById('pfp-input').click()">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="position:relative;">
+                <img id="my-pfp" class="pfp-main" onclick="document.getElementById('pfp-input').click()">
+                <div style="position:absolute; bottom:2px; right:2px; width:12px; height:12px; background:var(--green); border:2px solid var(--hdr); border-radius:50%;"></div>
+            </div>
             <input type="file" id="pfp-input" hidden onchange="uploadPfp(this)">
-            <b id="site-display-name">Tallah Star</b>
+            <b id="site-display-name" style="font-size:18px; color:var(--gold)">Tallah Star</b>
         </div>
-        <div style="display:flex; gap:20px; font-size:20px;">
-            <i class="fas fa-crown" id="admin-icon" onclick="openAdmin()" style="cursor:pointer; color:var(--gold)"></i>
-            <i class="fas fa-power-off" onclick="logout()" style="cursor:pointer;"></i>
+        <div style="display:flex; gap:25px; align-items:center;">
+            <i class="fas fa-crown" id="admin-icon" onclick="openAdmin()" style="cursor:pointer; color:var(--gold); font-size:22px;"></i>
+            <i class="fas fa-power-off" onclick="logout()" style="cursor:pointer; color:#ff4d4d; font-size:20px;"></i>
         </div>
     </header>
 
-    <div id="pinned-area">
-        <div class="pinned-channel" onclick="openChannel()">
-            <div style="background:var(--gold); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-left:15px;">
-                <i class="fas fa-bullhorn" style="color:black; font-size:20px;"></i>
+    <div id="main-content" style="height: calc(100vh - 75px); overflow-y: auto;">
+        <div class="pinned-box animate__animated animate__pulse animate__infinite" onclick="openChannel()">
+            <div style="background:var(--gold); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-left:15px; box-shadow: 0 0 15px rgba(212,175,55,0.4);">
+                <i class="fas fa-star" style="color:black; font-size:22px;"></i>
             </div>
-            <div>
-                <b style="color:var(--gold)">قناة الإمبراطور الرسمية ✅</b>
-                <p style="font-size:12px; color:gray;">ممنوع الرد.. هنا تصدر الأوامر</p>
+            <div style="flex:1">
+                <b style="color:var(--gold); font-size:16px;">قناة طلة الرسمية ✅</b>
+                <p style="font-size:12px; color:#8696a0;">آخر العروض والقرارات الملكية الحصرية</p>
             </div>
+            <i class="fas fa-chevron-left" style="color:gray;"></i>
         </div>
-    </div>
 
-    <div id="users-list"></div>
+        <div id="users-list"></div>
+    </div>
 </div>
 
 <div id="chat-ui">
-    <div style="background:var(--hdr); padding:10px; display:flex; align-items:center; gap:12px;">
-        <i class="fas fa-arrow-right" onclick="closeChat()" style="cursor:pointer"></i>
-        <img id="chat-user-pfp" class="pfp-list" style="width:40px; height:40px; margin:0">
-        <b id="chat-user-name"></b>
+    <div style="background:var(--hdr); padding:10px 15px; display:flex; align-items:center; gap:12px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <i class="fas fa-arrow-right" onclick="closeChat()" style="cursor:pointer; font-size:20px;"></i>
+        <div style="position:relative">
+            <img id="chat-user-pfp" class="pfp-list" style="width:42px; height:42px; margin:0; border:1px solid #444;">
+        </div>
+        <div style="flex:1">
+            <b id="chat-user-name" style="font-size:16px;"></b>
+            <div id="typing-txt" class="typing-indicator">جاري الكتابة الآن...</div>
+        </div>
+        <i class="fas fa-ellipsis-v" style="color:gray; cursor:pointer;"></i>
     </div>
+    
     <div id="chat-box" class="chat-body"></div>
-    <div id="chat-footer-area" class="chat-footer" style="background:var(--hdr); padding:10px; display:flex; align-items:center; gap:10px;">
-        <label for="img-in"><i class="fas fa-camera" style="font-size:22px; color:#8696a0; cursor:pointer;"></i></label>
+
+    <div id="chat-footer-area" class="chat-footer">
+        <label for="img-in"><i class="fas fa-plus-circle" style="font-size:24px; color:var(--blue); cursor:pointer;"></i></label>
         <input type="file" id="img-in" hidden onchange="sendMedia(this)">
-        <input type="text" id="msg-input" style="flex:1; background:#2a3942; border:none; padding:12px; border-radius:20px; color:white;" placeholder="رسالة...">
-        <i class="fas fa-paper-plane" style="color:var(--green); font-size:24px; cursor:pointer;" onclick="sendMessage()"></i>
+        
+        <input type="text" id="msg-input" class="input-pill" placeholder="اكتب رسالة..." oninput="handleTyping()">
+        
+        <div id="action-btns" style="display:flex; align-items:center; gap:15px;">
+            <i class="fas fa-microphone" style="font-size:20px; color:#8696a0; cursor:pointer;"></i>
+            <i class="fas fa-paper-plane" id="send-btn" style="color:var(--green); font-size:26px; cursor:pointer; transform: rotate(-20deg);" onclick="sendMessage()"></i>
+        </div>
     </div>
 </div>
 
 <div id="admin-panel" class="admin-panel">
-    <h2 style="color:var(--gold); border-bottom:1px solid #333; padding-bottom:10px;">لوحة إمبراطور طلة 👑</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h2 style="color:var(--gold); font-size:24px;"><i class="fas fa-user-shield"></i> لوحة الإدارة العليا</h2>
+        <button onclick="closeAdmin()" style="background:transparent; border:1px solid red; color:red; padding:8px 15px; border-radius:10px;">إغلاق</button>
+    </div>
     
     <div class="admin-card">
-        <h4>إعدادات الهوية 🌐</h4>
+        <h4><i class="fas fa-paint-brush"></i> هوية النظام</h4>
         <input type="text" id="set-site-name" placeholder="اسم الموقع الجديد">
-        <button class="btn-gold" onclick="updateSiteIdentity()">تحديث الهوية</button>
+        <button class="btn-action btn-gold" onclick="updateSiteIdentity()">حفظ التعديلات</button>
     </div>
 
     <div class="admin-card">
-        <h4>رسالة جماعية (للجميع) 📣</h4>
-        <input type="text" id="bc-msg" placeholder="اكتب رسالة ستصل لكل المستخدمين">
-        <button class="btn-gold" style="background:var(--blue); color:white" onclick="sendBroadcast()">إرسال للكل فوراً</button>
+        <h4><i class="fas fa-users"></i> إرسال برودكاست (رسالة للجميع)</h4>
+        <textarea id="bc-msg" placeholder="اكتب رسالتك هنا..." style="width:100%; background:#2a3942; border:none; padding:15px; border-radius:15px; color:white; min-height:80px; margin-top:10px;"></textarea>
+        <button class="btn-action" style="background:var(--blue); color:white" onclick="sendBroadcast()">إرسال طلقة واحدة للكل 🚀</button>
     </div>
 
     <div class="admin-card">
-        <h4>الإعلان المنبثق 📢</h4>
-        <input type="text" id="ad-t" placeholder="عنوان الإعلان">
-        <input type="text" id="ad-b" placeholder="التفاصيل">
-        <button class="btn-gold" onclick="publishAd()">نشر الإعلان</button>
+        <h4><i class="fas fa-bullhorn"></i> إعلان منبثق (Pop-up)</h4>
+        <input type="text" id="ad-t" placeholder="عنوان الإعلان الفخم">
+        <input type="text" id="ad-b" placeholder="وصف الإعلان">
+        <button class="btn-action btn-gold" onclick="publishAd()">تفعيل الإعلان الآن</button>
     </div>
 
     <div class="admin-card">
-        <h4>الأعضاء والتوثيق 👥</h4>
-        <div id="admin-users-list"></div>
+        <h4><i class="fas fa-user-check"></i> إدارة الأعضاء والتوثيق</h4>
+        <div id="admin-users-list" style="margin-top:15px;"></div>
     </div>
-
-    <button style="background:red; color:white; padding:15px; border-radius:10px; width:100%; border:none; font-weight:bold;" onclick="closeAdmin()">إغلاق اللوحة</button>
 </div>
 
 <script>
+    // --- الربط المحترف بـ Firebase ---
     const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const Toast = Swal.mixin({ toast: true, position: 'top', showConfirmButton: false, timer: 3000 });
 
-    let me = JSON.parse(localStorage.getItem('tallah_v13_auth'));
+    let me = JSON.parse(localStorage.getItem('tallah_diamond_auth'));
     let activeChat = null;
     let targetKey = null;
     let isChannel = false;
+    let typingTimeout;
 
+    // --- نظام الدخول الماسي ---
     function attemptLogin() {
         const code = document.getElementById('entry-code').value;
         if(code === "248") {
@@ -158,25 +201,27 @@
             saveAuth();
         } else {
             db.ref('users').once('value', s => {
-                s.forEach(u => { if(u.val().code === code) { me = u.val(); me.uid = u.key; saveAuth(); } });
+                let found = false;
+                s.forEach(u => { if(u.val().code === code) { me = u.val(); me.uid = u.key; found = true; saveAuth(); } });
+                if(!found) Toast.fire({ icon: 'error', title: 'كود الملك غلط!' });
             });
         }
     }
-    function saveAuth() { localStorage.setItem('tallah_v13_auth', JSON.stringify(me)); location.reload(); }
+    function saveAuth() { localStorage.setItem('tallah_diamond_auth', JSON.stringify(me)); location.reload(); }
 
     if(me) {
         document.getElementById('gate').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         document.getElementById('my-pfp').src = me.pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
         if(me.role !== 'admin') document.getElementById('admin-icon').classList.add('hidden');
-        init();
+        initDiamondSystem();
     }
 
-    function init() {
+    function initDiamondSystem() {
         db.ref('settings/siteName').on('value', s => {
             const name = s.val() || "Tallah Star";
             document.getElementById('site-display-name').innerText = name;
-            document.getElementById('tab-title').innerText = name;
+            document.getElementById('tab-title').innerText = name + " | Diamond";
             document.getElementById('gate-name').innerText = name;
         });
 
@@ -191,18 +236,21 @@
         loadUsers();
     }
 
+    // --- رفع صور حبشتكنات ---
     function uploadPfp(input) {
         const r = new FileReader();
         r.onload = e => {
             me.pfp = e.target.result;
             document.getElementById('my-pfp').src = me.pfp;
-            localStorage.setItem('tallah_v13_auth', JSON.stringify(me));
+            localStorage.setItem('tallah_diamond_auth', JSON.stringify(me));
             if(me.uid === 'admin') db.ref('settings/adminPfp').set(me.pfp);
             else db.ref('users/'+me.uid).update({ pfp: me.pfp });
+            Toast.fire({icon:'success', title:'تم تحديث البروفايل بنجاح'});
         };
         r.readAsDataURL(input.files[0]);
     }
 
+    // --- القائمة والعدادات الذكية ---
     function loadUsers() {
         db.ref('users').on('value', snap => {
             const list = document.getElementById('users-list'); list.innerHTML = "";
@@ -219,28 +267,37 @@
         db.ref(`unread/${me.uid}/${key}`).on('value', c => {
             const count = c.val() || 0;
             const html = `
-                <div class="user-row" id="row-${key}" onclick="openChat('${key}', '${name}', '${pfp}')">
+                <div class="user-row animate__animated animate__fadeIn" onclick="openChat('${key}', '${name}', '${pfp}')">
                     <img src="${pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="pfp-list">
-                    <div style="flex:1"><b>${name} ${verified?'<i class="fas fa-check-circle" style="color:var(--blue)"></i>':''}</b></div>
-                    ${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}
+                    <div style="flex:1">
+                        <b style="font-size:16px;">${name} ${verified?'<i class="fas fa-check-circle" style="color:var(--blue); font-size:14px;"></i>':''}</b>
+                        <p style="font-size:12px; color:gray; margin-top:3px;">اضغط لبدء المحادثة السريعة</p>
+                    </div>
+                    ${count > 0 ? `<div class="unread-badge animate__animated animate__bounceIn">${count}</div>` : ''}
                 </div>`;
             list.innerHTML += html;
         });
     }
 
+    // --- الشات الاحترافي ---
     function openChat(key, name, pfp) {
         isChannel = false; targetKey = key;
         activeChat = [me.uid, key].sort().join("_");
         document.getElementById('chat-footer-area').classList.remove('hidden');
         setupChatUI(name, pfp);
         db.ref(`unread/${me.uid}/${key}`).set(0);
+        
+        // مراقبة Typing
+        db.ref(`typing/${activeChat}/${targetKey}`).on('value', s => {
+            document.getElementById('typing-txt').style.display = s.val() ? 'block' : 'none';
+        });
+
         listenMsgs('messages/' + activeChat);
     }
 
     function openChannel() {
         isChannel = true;
-        setupChatUI("قناة الإمبراطور الرسمية", "");
-        document.getElementById('chat-user-pfp').classList.add('hidden');
+        setupChatUI("قناة طلة الرسمية", "https://cdn-icons-png.flaticon.com/512/1828/1828884.png");
         if(me.role !== 'admin') document.getElementById('chat-footer-area').classList.add('hidden');
         listenMsgs('channel');
     }
@@ -249,7 +306,6 @@
         document.getElementById('chat-ui').style.display = 'flex';
         document.getElementById('chat-user-name').innerText = name;
         document.getElementById('chat-user-pfp').src = pfp;
-        document.getElementById('chat-user-pfp').classList.remove('hidden');
     }
 
     function listenMsgs(path) {
@@ -257,44 +313,58 @@
             const box = document.getElementById('chat-box'); box.innerHTML = "";
             snap.forEach(m => {
                 const d = m.val(); const isMe = d.sender === me.uid;
-                let c = d.type === 'image' ? `<img src="${d.content}" class="msg-media">` : d.content;
-                box.innerHTML += `<div class="bubble ${isMe?'b-me':'b-other'}">${c}</div>`;
+                const time = d.time ? new Date(d.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                let c = d.type === 'image' ? `<img src="${d.content}" class="msg-media" onclick="window.open('${d.content}')">` : d.content;
+                box.innerHTML += `
+                    <div class="bubble ${isMe?'b-me':'b-other'}">
+                        ${c}
+                        <span class="time-tag">${time}</span>
+                    </div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
     }
 
+    function handleTyping() {
+        if(isChannel) return;
+        db.ref(`typing/${activeChat}/${me.uid}`).set(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => { db.ref(`typing/${activeChat}/${me.uid}`).set(false); }, 2000);
+    }
+
     function sendMessage() {
         const v = document.getElementById('msg-input').value; if(!v) return;
         const path = isChannel ? 'channel' : 'messages/'+activeChat;
-        db.ref(path).push({ sender:me.uid, content:v, type:'text' });
+        db.ref(path).push({ sender:me.uid, content:v, type:'text', time: Date.now() });
         if(!isChannel) db.ref(`unread/${targetKey}/${me.uid}`).transaction(c => (c||0)+1);
         document.getElementById('msg-input').value = "";
+        document.getElementById('notif-sound').play();
     }
 
     function sendMedia(i) {
         const r = new FileReader();
         r.onload = e => {
             const path = isChannel ? 'channel' : 'messages/'+activeChat;
-            db.ref(path).push({ sender:me.uid, content:e.target.result, type:'image' });
+            db.ref(path).push({ sender:me.uid, content:e.target.result, type:'image', time: Date.now() });
             if(!isChannel) db.ref(`unread/${targetKey}/${me.uid}`).transaction(c => (c||0)+1);
         };
         r.readAsDataURL(i.files[0]);
     }
 
-    // --- الإدارة الفولاذية ---
+    // --- لوحة التحكم (الماستر) ---
     function openAdmin() {
         document.getElementById('admin-panel').style.display = 'block';
         db.ref('users').on('value', s => {
             const box = document.getElementById('admin-users-list'); box.innerHTML = "";
             s.forEach(u => {
-                box.innerHTML += `<div style="background:#2a3942; padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>${u.val().name}</span>
-                    <div>
-                        <button onclick="toggleV('${u.key}',${u.val().verified})" style="background:var(--blue); border:none; padding:5px; border-radius:5px; margin-left:5px;"><i class="fas fa-check"></i></button>
-                        <button onclick="deleteUser('${u.key}')" style="background:red; border:none; padding:5px; border-radius:5px;"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
+                box.innerHTML += `
+                    <div style="background:#2a3942; padding:12px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>${u.val().name}</span>
+                        <div style="display:flex; gap:10px;">
+                            <i class="fas fa-check-double" style="color:${u.val().verified?'var(--blue)':'gray'}; cursor:pointer;" onclick="toggleV('${u.key}',${u.val().verified})"></i>
+                            <i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="deleteUser('${u.key}')"></i>
+                        </div>
+                    </div>`;
             });
         });
     }
@@ -302,7 +372,7 @@
     function updateSiteIdentity() {
         const n = document.getElementById('set-site-name').value;
         if(n) db.ref('settings/siteName').set(n);
-        Toast.fire({ icon: 'success', title: 'تم تغيير اسم الإمبراطورية' });
+        Toast.fire({ icon:'success', title:'تم تحديث هوية الإمبراطورية' });
     }
 
     function sendBroadcast() {
@@ -311,28 +381,34 @@
         db.ref('users').once('value', s => {
             s.forEach(u => {
                 const path = [me.uid, u.key].sort().join("_");
-                db.ref('messages/'+path).push({ sender:me.uid, content: "📢 رسالة جماعية: " + msg, type:'text' });
+                db.ref('messages/'+path).push({ sender:me.uid, content: "💎 رسالة ملكية: " + msg, type:'text', time: Date.now() });
                 db.ref(`unread/${u.key}/${me.uid}`).transaction(c => (c||0)+1);
             });
         });
-        Toast.fire({ icon: 'success', title: 'تم إرسال الرسالة للكل' });
+        Toast.fire({ icon:'success', title:'تم الإرسال للجميع بنجاح' });
+        document.getElementById('bc-msg').value = "";
     }
 
     function publishAd() {
         const t = document.getElementById('ad-t').value;
         const b = document.getElementById('ad-b').value;
         db.ref('settings/ad').set({ title: t, body: b, active: true });
-        Toast.fire({ icon: 'success', title: 'نُشر الإعلان' });
+        Toast.fire({ icon:'success', title:'نُشر الإعلان الماسي' });
     }
 
     function toggleV(k, v) { db.ref('users/'+k).update({ verified: !v }); }
-    function deleteUser(k) { db.ref('users/'+k).remove(); }
+    function deleteUser(k) { 
+        Swal.fire({title:'حذف مستخدم؟', text:'سيتم طرده نهائياً!', icon:'warning', showCancelButton:true}).then(r => {
+            if(r.isConfirmed) db.ref('users/'+k).remove();
+        });
+    }
+
     function closeChat() { document.getElementById('chat-ui').style.display='none'; }
     function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
     function logout() { localStorage.clear(); location.reload(); }
     function requestJoin() {
         const n = document.getElementById('req-name').value;
-        if(n) { db.ref('join_requests').push({ name: n }); Toast.fire({ icon: 'info', title: 'تم إرسال الطلب' }); }
+        if(n) { db.ref('join_requests').push({ name: n }); Toast.fire({ icon: 'info', title: 'تم إرسال طلب الانضمام' }); }
     }
 </script>
 </body>
