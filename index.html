@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tallah Star | الإمبراطورية المطلقة</title>
+    <title>Tallah Star | الإمبراطورية v12</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -20,15 +19,14 @@
         body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
         header { background: var(--hdr); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111b21; }
-        .pfp-main { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
-        .pfp-main:hover { border-color: var(--gold); }
+        .pfp-main { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; border: 2px solid var(--gold); }
 
-        .user-row { display: flex; padding: 15px; border-bottom: 1px solid #222d34; align-items: center; cursor: pointer; transition: 0.2s; }
-        .user-row:hover { background: rgba(255,255,255,0.05); }
-        .pfp-list { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; object-fit: cover; }
-        .verify-v { color: var(--blue); margin-right: 5px; font-size: 13px; }
+        /* قائمة المستخدمين */
+        .user-row { display: flex; padding: 15px; border-bottom: 1px solid #222d34; align-items: center; cursor: pointer; position: relative; }
+        .pfp-list { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; object-fit: cover; background: #222; }
+        .unread-badge { background: var(--green); color: white; border-radius: 50%; min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: auto; }
 
-        /* شاشة الدردشة */
+        /* الشات */
         #chat-ui { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; flex-direction: column; }
         .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(0,0,0,0.92); background-blend-mode: darken; display: flex; flex-direction: column; }
         .bubble { max-width: 80%; padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 15px; }
@@ -36,18 +34,11 @@
         .b-other { background: var(--hdr); align-self: flex-start; border-top-left-radius: 0; }
         .msg-img { width: 100%; border-radius: 8px; margin-top: 5px; max-height: 250px; object-fit: cover; }
 
-        .chat-footer { background: var(--hdr); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .f-icon { font-size: 22px; color: #8696a0; cursor: pointer; }
-
         /* لوحة التحكم */
         .admin-panel { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; padding: 20px; overflow-y: auto; }
         .admin-card { background: #1c282f; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--gold); }
-        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: none; outline: none; }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; }
-        .btn-red { background: #ff3b30; color: white; font-weight: bold; }
+        .btn-gold { background: var(--gold); color: black; font-weight: bold; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; }
 
-        #popup-ad { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .ad-content { background: #1c282f; padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; max-width: 400px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -55,22 +46,14 @@
 
 <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
-<div id="popup-ad">
-    <div class="ad-content">
-        <h2 style="color:var(--gold)" id="ad-title"></h2>
-        <p style="margin:15px 0" id="ad-body"></p>
-        <button class="btn-gold" onclick="document.getElementById('popup-ad').style.display='none'">فهمت</button>
-    </div>
-</div>
-
 <div id="gate" style="position:fixed; inset:0; background:var(--bg); z-index:100000; display:flex; align-items:center; justify-content:center;">
     <div style="background:#1c282f; padding:30px; border-radius:25px; width:90%; max-width:400px; text-align:center; border-top: 5px solid var(--gold);">
-        <h1 style="color:var(--gold); margin-bottom:20px;">Tallah Star</h1>
-        <input type="password" id="entry-code" placeholder="أدخل كود الإمبراطور" style="background:#2a3942; color:white; text-align:center;">
-        <button class="btn-gold" onclick="attemptLogin()">دخول النظام</button>
-        <hr style="margin:20px 0; opacity:0.1">
-        <input type="text" id="req-name" placeholder="اسمك لطلب الانضمام">
-        <button style="background:var(--green); color:white" onclick="requestJoin()">طلب كود جديد</button>
+        <h1 style="color:var(--gold)">Tallah Star</h1>
+        <input type="password" id="entry-code" placeholder="كود الدخول" style="width:100%; padding:14px; margin:15px 0; border-radius:10px; border:none; background:#2a3942; color:white; text-align:center;">
+        <button class="btn-gold" onclick="attemptLogin()">دخول</button>
+        <hr style="opacity:0.1; margin:15px 0;">
+        <input type="text" id="req-name" placeholder="اسمك لطلب انضمام" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:none; background:#2a3942; color:white; text-align:center;">
+        <button style="background:var(--green); color:white; width:100%; padding:12px; border-radius:10px; border:none; font-weight:bold;" onclick="requestJoin()">طلب كود</button>
     </div>
 </div>
 
@@ -78,12 +61,12 @@
     <header>
         <div style="display:flex; align-items:center; gap:10px;">
             <img id="my-pfp" class="pfp-main" onclick="document.getElementById('pfp-input').click()">
-            <input type="file" id="pfp-input" hidden accept="image/*" onchange="changeMyPfp(this)">
+            <input type="file" id="pfp-input" hidden accept="image/*" onchange="uploadMyPfp(this)">
             <b id="brand-name">Tallah Star</b>
         </div>
-        <div style="display:flex; gap:20px; font-size:20px; cursor:pointer;">
-            <i class="fas fa-crown" id="admin-icon" onclick="openAdmin()"></i>
-            <i class="fas fa-sign-out-alt" onclick="logout()"></i>
+        <div style="display:flex; gap:20px; font-size:20px;">
+            <i class="fas fa-crown" id="admin-icon" onclick="openAdmin()" style="cursor:pointer; color:var(--gold)"></i>
+            <i class="fas fa-power-off" onclick="logout()" style="cursor:pointer;"></i>
         </div>
     </header>
     <div id="users-list"></div>
@@ -91,92 +74,75 @@
 
 <div id="chat-ui">
     <div style="background:var(--hdr); padding:10px; display:flex; align-items:center; gap:12px;">
-        <i class="fas fa-arrow-right" onclick="closeChat()"></i>
+        <i class="fas fa-arrow-right" onclick="closeChat()" style="cursor:pointer"></i>
         <img id="chat-user-pfp" class="pfp-list" style="width:40px; height:40px; margin:0">
         <b id="chat-user-name"></b>
     </div>
     <div id="chat-box" class="chat-body"></div>
     <div class="chat-footer">
-        <label for="img-in"><i class="fas fa-camera f-icon"></i></label>
+        <label for="img-in"><i class="fas fa-image" style="font-size:22px; color:#8696a0; cursor:pointer;"></i></label>
         <input type="file" id="img-in" hidden accept="image/*" onchange="sendPhoto(this)">
-        <input type="text" id="msg-input" style="flex:1; background:#2a3942; border:none; padding:12px; border-radius:20px; color:white;" placeholder="اكتب هنا...">
+        <input type="text" id="msg-input" style="flex:1; background:#2a3942; border:none; padding:12px; border-radius:20px; color:white;" placeholder="رسالة...">
         <i class="fas fa-paper-plane" style="color:var(--green); font-size:24px; cursor:pointer;" onclick="sendText()"></i>
     </div>
 </div>
 
 <div id="admin-panel" class="admin-panel">
-    <h2 style="color:var(--gold); margin-bottom:20px;">لوحة إمبراطور طلة 👑</h2>
-    
+    <h2 style="color:var(--gold); margin-bottom:20px;">التحكم الكامل 👑</h2>
     <div class="admin-card">
-        <h4>المستخدمين (تغيير كود | توثيق | حذف)</h4>
-        <div id="admin-users"></div>
+        <h4>المستخدمين والأكواد</h4>
+        <div id="admin-users-list"></div>
     </div>
-
-    <div class="admin-card">
-        <h4>الإعلان العام 📢</h4>
-        <input type="text" id="ad-t" placeholder="عنوان الإعلان">
-        <input type="text" id="ad-b" placeholder="تفاصيل الإعلان">
-        <button class="btn-gold" onclick="setAd()">نشر الإعلان الآن</button>
-    </div>
-
-    <div class="admin-card">
-        <h4>طلبات الانضمام 🔔</h4>
-        <div id="admin-reqs"></div>
-    </div>
-
-    <button class="btn-red" onclick="closeAdmin()">إغلاق اللوحة</button>
+    <button style="background:red; color:white; padding:12px; border-radius:10px; width:100%; border:none; font-weight:bold;" onclick="closeAdmin()">إغلاق</button>
 </div>
 
 <script>
+    // تكوين Firebase
     const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let me = JSON.parse(localStorage.getItem('tallah_v9_auth'));
-    let activeChat = null;
-    let targetID = null;
+    // التنبيهات دايماً تظهر فوق
+    const Toast = Swal.mixin({ toast: true, position: 'top', showConfirmButton: false, timer: 3000 });
 
-    // --- نظام الدخول ---
+    let me = JSON.parse(localStorage.getItem('tallah_v12_auth'));
+    let activeChat = null;
+    let targetKey = null;
+
     function attemptLogin() {
         const code = document.getElementById('entry-code').value;
         if(code === "248") {
-            me = { id: 'admin', name: 'الإمبراطور', role: 'admin', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+            me = { uid: 'admin', name: 'الإمبراطور', role: 'admin', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
             saveAuth();
         } else {
             db.ref('users').once('value', s => {
-                s.forEach(u => { if(u.val().code === code) { me = u.val(); me.dbKey = u.key; saveAuth(); } });
+                let found = false;
+                s.forEach(u => { if(u.val().code === code) { me = u.val(); me.uid = u.key; found = true; saveAuth(); } });
+                if(!found) Toast.fire({ icon: 'error', title: 'الكود غلط يا وحش' });
             });
         }
     }
-    function saveAuth() { localStorage.setItem('tallah_v9_auth', JSON.stringify(me)); location.reload(); }
+    function saveAuth() { localStorage.setItem('tallah_v12_auth', JSON.stringify(me)); location.reload(); }
 
     if(me) {
         document.getElementById('gate').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
-        document.getElementById('my-pfp').src = me.pfp;
+        document.getElementById('my-pfp').src = me.pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
         if(me.role !== 'admin') document.getElementById('admin-icon').classList.add('hidden');
-        runApp();
-    }
-
-    function runApp() {
-        db.ref('settings/ad').on('value', s => {
-            if(s.val()?.active) {
-                document.getElementById('popup-ad').style.display = 'flex';
-                document.getElementById('ad-title').innerText = s.val().title;
-                document.getElementById('ad-body').innerText = s.val().body;
-            }
-        });
         loadUsers();
     }
 
-    function changeMyPfp(input) {
+    // رفع صورة البروفايل من الجهاز
+    function uploadMyPfp(input) {
         const reader = new FileReader();
         reader.onload = e => {
             const data = e.target.result;
             me.pfp = data;
             document.getElementById('my-pfp').src = data;
-            localStorage.setItem('tallah_v9_auth', JSON.stringify(me));
-            if(me.id !== 'admin') db.ref('users/'+me.dbKey).update({ pfp: data });
+            localStorage.setItem('tallah_v12_auth', JSON.stringify(me));
+            if(me.uid === 'admin') db.ref('settings/adminPfp').set(data);
+            else db.ref('users/'+me.uid).update({ pfp: data });
+            Toast.fire({ icon: 'success', title: 'تم تحديث صورتك' });
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -184,29 +150,51 @@
     function loadUsers() {
         db.ref('users').on('value', snap => {
             const list = document.getElementById('users-list'); list.innerHTML = "";
+            
+            // إضافة "الإمبراطور" للقائمة لو المستخدم عادي
+            if(me.uid !== 'admin') {
+                db.ref('settings/adminPfp').once('value', p => {
+                    addUserRow(list, 'admin', 'الإمبراطور', p.val(), true);
+                });
+            }
+
             snap.forEach(u => {
-                const user = u.val(); if(user.id === me.id) return;
-                list.innerHTML += `
-                    <div class="user-row" onclick="openChat('${u.key}', '${user.name}', '${user.pfp}', ${user.verified})">
-                        <img src="${user.pfp}" class="pfp-list">
-                        <b>${user.name} ${user.verified?'<i class="fas fa-check-circle verify-v"></i>':''}</b>
-                    </div>`;
+                if(u.key === me.uid) return;
+                addUserRow(list, u.key, u.val().name, u.val().pfp, u.val().verified);
             });
         });
     }
 
-    function openChat(key, name, pfp, verified) {
-        targetID = key; activeChat = [me.id, key].sort().join("_");
+    function addUserRow(list, key, name, pfp, verified) {
+        db.ref(`unread/${me.uid}/${key}`).on('value', c => {
+            const count = c.val() || 0;
+            const existing = document.getElementById('row-'+key);
+            const html = `
+                <div class="user-row" id="row-${key}" onclick="openChat('${key}', '${name}', '${pfp}')">
+                    <img src="${pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="pfp-list">
+                    <div style="flex:1"><b>${name} ${verified?'<i class="fas fa-check-circle" style="color:var(--blue)"></i>':''}</b></div>
+                    ${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}
+                </div>`;
+            if(existing) existing.outerHTML = html;
+            else list.innerHTML += html;
+        });
+    }
+
+    function openChat(key, name, pfp) {
+        targetKey = key;
+        activeChat = [me.uid, key].sort().join("_");
         document.getElementById('chat-ui').style.display = 'flex';
-        document.getElementById('chat-user-name').innerHTML = name + (verified?' <i class="fas fa-check-circle verify-v"></i>':'');
-        document.getElementById('chat-user-pfp').src = pfp;
+        document.getElementById('chat-user-name').innerText = name;
+        document.getElementById('chat-user-pfp').src = pfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+        db.ref(`unread/${me.uid}/${key}`).set(0); // تصفير الإشعارات
 
         db.ref('messages/' + activeChat).on('value', snap => {
             const box = document.getElementById('chat-box'); box.innerHTML = "";
             snap.forEach(m => {
-                const d = m.val(); const isMe = d.sender === me.id;
-                let html = d.type === 'image' ? `<img src="${d.content}" class="msg-img">` : d.content;
-                box.innerHTML += `<div class="bubble ${isMe?'b-me':'b-other'}">${html}</div>`;
+                const d = m.val(); const isMe = d.sender === me.uid;
+                let content = d.type === 'image' ? `<img src="${d.content}" class="msg-img">` : d.content;
+                box.innerHTML += `<div class="bubble ${isMe?'b-me':'b-other'}">${content}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
@@ -214,83 +202,41 @@
 
     function sendText() {
         const v = document.getElementById('msg-input').value; if(!v) return;
-        db.ref('messages/'+activeChat).push({ sender:me.id, content:v, type:'text' });
+        db.ref('messages/'+activeChat).push({ sender:me.uid, content:v, type:'text' });
+        db.ref(`unread/${targetKey}/${me.uid}`).transaction(c => (c||0)+1);
         document.getElementById('msg-input').value = "";
     }
 
     function sendPhoto(i) {
         const r = new FileReader();
-        r.onload = e => db.ref('messages/'+activeChat).push({ sender:me.id, content:e.target.result, type:'image' });
+        r.onload = e => {
+            db.ref('messages/'+activeChat).push({ sender:me.uid, content:e.target.result, type:'image' });
+            db.ref(`unread/${targetKey}/${me.uid}`).transaction(c => (c||0)+1);
+        };
         r.readAsDataURL(i.files[0]);
     }
 
-    // --- الإدارة الفتاكة ---
     function openAdmin() {
         document.getElementById('admin-panel').style.display = 'block';
-        db.ref('users').on('value', snap => {
-            const box = document.getElementById('admin-users'); box.innerHTML = "";
-            snap.forEach(u => {
-                box.innerHTML += `
-                    <div style="background:#2a3942; padding:10px; border-radius:10px; margin-bottom:10px;">
-                        <p><b>${u.val().name}</b> (كود: ${u.val().code})</p>
-                        <div style="display:flex; gap:5px; margin-top:5px;">
-                            <button onclick="changeUserCode('${u.key}')" style="background:var(--blue); font-size:11px;">تغيير كود</button>
-                            <button onclick="toggleV('${u.key}',${u.val().verified})" style="background:var(--gold); color:black; font-size:11px;">توثيق</button>
-                            <button onclick="deleteUser('${u.key}')" style="background:red; color:white; font-size:11px;">حذف</button>
-                        </div>
-                    </div>`;
-            });
-        });
-        db.ref('join_requests').on('value', s => {
-            const box = document.getElementById('admin-reqs'); box.innerHTML = "";
-            s.forEach(r => {
-                if(r.val().status === 'pending') {
-                    box.innerHTML += `<div style="display:flex; justify-content:space-between;">
-                        <span>${r.val().name}</span>
-                        <button onclick="approve('${r.key}','${r.val().name}')" style="width:auto; padding:5px 10px; background:var(--green)">قبول</button>
-                    </div>`;
-                }
+        db.ref('users').on('value', s => {
+            const box = document.getElementById('admin-users-list'); box.innerHTML = "";
+            s.forEach(u => {
+                box.innerHTML += `<div style="background:#2a3942; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>${u.val().name}</span>
+                    <button onclick="deleteUser('${u.key}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">حذف</button>
+                </div>`;
             });
         });
     }
 
-    async function changeUserCode(key) {
-        const { value: c } = await Swal.fire({ title: 'أدخل الكود الجديد', input: 'text' });
-        if(c) db.ref('users/'+key).update({ code: c });
-    }
-
-    function toggleV(key, v) { db.ref('users/'+key).update({ verified: !v }); }
-    
-    function deleteUser(key) {
-        Swal.fire({ title: 'متأكد؟', text: "سيتم حذف المستخدم نهائياً", icon: 'warning', showCancelButton: true }).then(r => {
-            if(r.isConfirmed) db.ref('users/'+key).remove();
-        });
-    }
-
-    async function approve(k, n) {
-        const { value: c } = await Swal.fire({ title: 'أدخل كود لـ ' + n, input: 'text' });
-        if(c) {
-            db.ref('users').push({ id: Date.now(), name: n, code: c, pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', verified: false });
-            db.ref('join_requests/'+k).remove();
-        }
-    }
-
-    function setAd() {
-        const t = document.getElementById('ad-t').value;
-        const b = document.getElementById('ad-b').value;
-        db.ref('settings/ad').set({ title: t, body: b, active: true });
-        Swal.fire('تم النشر');
-    }
-
-    function requestJoin() {
-        const n = document.getElementById('req-name').value;
-        if(n) db.ref('join_requests').push({ name: n, status: 'pending' });
-        Swal.fire('تم إرسال الطلب');
-    }
-
+    function deleteUser(k) { db.ref('users/'+k).remove(); Toast.fire({ icon: 'success', title: 'تم الحذف' }); }
     function closeChat() { document.getElementById('chat-ui').style.display='none'; }
     function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
     function logout() { localStorage.clear(); location.reload(); }
+    function requestJoin() {
+        const n = document.getElementById('req-name').value;
+        if(n) { db.ref('join_requests').push({ name: n }); Toast.fire({ icon: 'info', title: 'تم إرسال طلبك' }); }
+    }
 </script>
 </body>
 </html>
