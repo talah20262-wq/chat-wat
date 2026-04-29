@@ -3,222 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsApp Star | النسخة الملكية</title>
+    <title>WhatsApp Star | الإمبراطورية</title>
     
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22WhatsApp%20Star%22,%22short_name%22:%22Star%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#0b141a%22,%22theme_color%22:%22#202c33%22}">
-    <meta name="theme-color" content="#202c33">
-
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --bg: #0b141a; --header: #202c33; --green: #25d366; --gold: #d4af37; --blue: #34b7f1; --msg-me: #005c4b; --msg-other: #202c33; }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; height: 100vh; overflow: hidden; }
+        :root { --bg: #0b141a; --header: #202c33; --green: #25d366; --gold: #d4af37; --msg-me: #005c4b; --msg-other: #202c33; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: var(--bg); color: white; height: 100vh; overflow: hidden; }
 
-        /* شاشات الدخول */
-        .auth-screen { position: fixed; inset: 0; background: radial-gradient(circle, #111b21 0%, #0b141a 100%); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .royal-card { background: #222e35; padding: 30px; border-radius: 30px; width: 100%; max-width: 420px; text-align: center; border: 1px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-        
-        input, button, textarea { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: none; outline: none; transition: 0.3s; }
-        input { background: #2a3942; color: white; text-align: center; font-size: 1rem; }
-        input:focus { border: 1px solid var(--gold); }
-        .btn-green { background: var(--green); color: #000; font-weight: 900; cursor: pointer; }
-        .btn-gold { background: none; color: var(--gold); border: 1px solid var(--gold); font-weight: bold; cursor: pointer; }
+        /* شاشة الدخول */
+        .auth-screen { position: fixed; inset: 0; background: #0b141a; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .royal-card { background: #222e35; padding: 35px; border-radius: 30px; width: 90%; max-width: 420px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 15px; border: none; background: #2a3942; color: white; text-align: center; font-size: 18px; }
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; cursor: pointer; font-weight: 900; font-size: 18px; transition: 0.3s; }
+        .btn-green { background: var(--green); color: #000; }
+        .btn-gold { background: none; color: var(--gold); border: 2px solid var(--gold); margin-top: 15px; }
 
-        /* واجهة التطبيق */
-        .app-container { display: none; height: 100vh; flex-direction: column; }
-        header { background: var(--header); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gold); }
-        
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .pfp-small { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        /* الهيدر */
+        header { background: var(--header); padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+        .pfp { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        .icon-large { font-size: 28px; color: var(--gold); cursor: pointer; transition: 0.3s; }
+        .icon-large:hover { transform: scale(1.1); }
 
-        /* القائمة */
-        .main-content { flex: 1; overflow-y: auto; background: #111b21; }
-        .chat-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #1c282f; cursor: pointer; transition: 0.2s; position: relative; }
-        .chat-item:hover { background: #2a3942; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #111b21; position: absolute; right: 55px; bottom: 15px; background: #8696a0; }
-        .status-dot.online { background: var(--green); }
+        /* قائمة الشاتات */
+        .list { flex: 1; overflow-y: auto; background: #111b21; padding-bottom: 20px; }
+        .row { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #1c282f; cursor: pointer; transition: 0.2s; }
+        .row:hover { background: #1c282f; }
+        .row b { font-size: 18px; color: #fff; }
+        .row small { font-size: 14px; color: #8696a0; }
+        .group-icon { background: var(--gold); color: #000; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 
-        /* نافذة الشات */
-        .chat-window { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); display: flex; flex-direction: column; gap: 8px; }
+        /* نافذة المحادثة */
+        .chat-view { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; }
+        .chat-header { background: var(--header); padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--gold); }
+        .chat-msgs { flex: 1; overflow-y: auto; padding: 20px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-color: #0b141a; display: flex; flex-direction: column; gap: 10px; }
         
-        .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; font-size: 16px; line-height: 1.5; position: relative; }
         .bubble.me { align-self: flex-end; background: var(--msg-me); border-top-left-radius: 0; }
         .bubble.other { align-self: flex-start; background: var(--msg-other); border-top-right-radius: 0; }
-        .bubble .time { font-size: 0.7rem; color: #8696a0; display: block; text-align: left; margin-top: 5px; }
+        .bubble .sender-name { font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 5px; display: block; }
+        .bubble img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
 
-        .input-area { background: var(--header); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .icon-btn { font-size: 20px; color: #8696a0; cursor: pointer; transition: 0.3s; }
-        .icon-btn:hover { color: var(--gold); }
+        .input-bar { background: var(--header); padding: 15px; display: flex; align-items: center; gap: 15px; }
+        #text-in { flex: 1; background: #2a3942; border: none; padding: 14px 20px; border-radius: 30px; color: white; font-size: 16px; outline: none; }
 
-        /* لوحة المالك */
-        .admin-panel { position: fixed; top: 70px; left: 15px; right: 15px; background: #1c282f; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; z-index: 6000; display: none; max-height: 70vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .admin-row { display: flex; justify-content: space-between; align-items: center; background: #2a3942; padding: 12px; margin-bottom: 8px; border-radius: 10px; }
-
-        .hidden { display: none !important; }
+        /* الإعدادات */
+        #settings-menu { position: fixed; top: 90px; left: 20px; right: 20px; background: #1c282f; border: 2px solid var(--gold); border-radius: 25px; padding: 25px; z-index: 6000; display: none; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body>
 
-<audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
+<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
-<div id="auth-screen" class="auth-screen">
+<div id="auth-box" class="auth-screen">
     <div class="royal-card">
-        <h1 style="color:var(--gold); margin-bottom: 20px;"><i class="fas fa-crown"></i> WhatsApp Star</h1>
-        <div id="auth-form">
-            <input type="text" id="reg-name" placeholder="الاسم المستعار">
-            <input type="tel" id="reg-phone" placeholder="رقم الموبايل">
-            <input type="password" id="reg-pass" placeholder="كلمة السر">
-            <button class="btn-green" onclick="handleAuth()">دخول ملكي 🚀</button>
-        </div>
-        <button class="btn-gold" onclick="ownerAccess()">دخول المالك 🛡️</button>
+        <h1 style="color:var(--gold); margin-bottom: 10px;"><i class="fas fa-star"></i> WhatsApp Star</h1>
+        <p style="color:#8696a0; margin-bottom: 20px;">ادخل وسيطر على العالم الملكي</p>
+        <input type="text" id="u-name" placeholder="اسمك الملكي المستعار">
+        <input type="tel" id="u-phone" placeholder="رقم الموبايل">
+        <button class="btn btn-green" onclick="login()">دخول الآن 🚀</button>
+        <button class="btn btn-gold" onclick="adminAccess()">دخول المالك 👑</button>
     </div>
 </div>
 
-<div id="app" class="app-container">
+<div id="main-app" style="display:none; height: 100vh; flex-direction: column;">
     <header>
-        <div class="user-info">
-            <img id="my-pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="pfp-small" onclick="changePfp()">
-            <b id="my-name" style="color:var(--gold)"></b>
+        <div style="display:flex; align-items:center; gap:15px">
+            <img id="my-img" class="pfp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+            <b id="my-display-name" style="font-size: 20px;"></b>
         </div>
-        <div style="display:flex; gap:20px; align-items:center; font-size: 20px;">
-            <i class="fas fa-user-shield" id="admin-icon" style="display:none; color:var(--gold); cursor:pointer" onclick="toggleAdmin()"></i>
-            <i class="fas fa-sign-out-alt" onclick="logout()" style="cursor:pointer"></i>
+        <div style="display:flex; gap:30px">
+            <i class="fas fa-cog icon-large" onclick="toggleSettings()"></i>
+            <i class="fas fa-sign-out-alt icon-large" style="color:#ff3b30" onclick="logout()"></i>
         </div>
     </header>
 
-    <div id="admin-panel" class="admin-panel">
-        <h3 style="color:var(--gold); text-align:center; margin-bottom:15px">لوحة تحكم الإمبراطور</h3>
-        <div id="admin-users-list"></div>
+    <div id="settings-menu">
+        <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; font-size: 22px;">غرفة التحكم</h3>
+        <button class="btn btn-gold" onclick="changePfp()">تغيير صورتك الشخصية 🖼️</button>
+        <button class="btn btn-gold" style="margin-top:10px" onclick="Swal.fire('تم ضبط اللغة','العربية هي لغتك الحالية','success')">اللغة: العربية 🇪🇬</button>
+        <div id="admin-only" style="display:none; margin-top:20px; border-top:1px solid #444; padding-top:15px">
+            <p style="color:var(--gold); margin-bottom:10px">إدارة الرعية (للمالك فقط):</p>
+            <div id="users-list-admin"></div>
+        </div>
     </div>
 
-    <div class="main-content" id="contacts-list">
+    <div class="list">
+        <div class="row" onclick="openChat('global_group', 'الجروب الملكي العام', 'group')">
+            <div class="pfp group-icon"><i class="fas fa-users"></i></div>
+            <div style="margin-right:15px">
+                <b>الجروب الملكي العام 👑</b><br>
+                <small style="color:var(--gold)">شات جماعي لكل أعضاء النجم</small>
+            </div>
         </div>
+        <div id="contacts"></div>
+    </div>
 </div>
 
-<div id="chat-screen" class="chat-window">
-    <header>
-        <div style="display:flex; align-items:center; gap:12px">
-            <i class="fas fa-arrow-right" onclick="closeChat()"></i>
-            <img id="chat-pfp" src="" class="pfp-small">
-            <b id="chat-title"></b>
-        </div>
-    </header>
-    <div class="chat-body" id="chat-msgs"></div>
-    <div class="input-area">
-        <label for="file-up"><i class="fas fa-paperclip icon-btn"></i></label>
-        <input type="file" id="file-up" class="hidden" accept="image/*" onchange="uploadImage(this)">
-        <input type="text" id="msg-input" placeholder="اكتب رسالتك...">
-        <i class="fas fa-microphone icon-btn" onclick="requestMic()"></i>
-        <i class="fas fa-paper-plane icon-btn" style="color:var(--green)" onclick="sendMsg()"></i>
+<div id="chat-win" class="chat-view">
+    <div class="chat-header">
+        <i class="fas fa-arrow-right icon-large" onclick="closeChat()"></i>
+        <div id="chat-pfp-box"></div>
+        <b id="chat-name" style="font-size: 20px;"></b>
+    </div>
+    <div id="msgs-box" class="chat-msgs"></div>
+    <div class="input-bar">
+        <label for="img-up"><i class="fas fa-image icon-large" style="color:#8696a0"></i></label>
+        <input type="file" id="img-up" style="display:none" accept="image/*" onchange="sendImage(this)">
+        <input type="text" id="text-in" placeholder="اكتب رسالتك الملكية...">
+        <i class="fas fa-paper-plane icon-large" style="color:var(--green)" onclick="sendText()"></i>
     </div>
 </div>
 
 <script>
-    // 1. إعدادات Firebase
     const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     let me = JSON.parse(localStorage.getItem('star_session'));
-    let activeChatID = null;
+    let activeChat = null;
 
-    if(me) launchApp();
+    if(me) startApp();
 
-    // 2. تسجيل الدخول والمالك
-    function handleAuth() {
-        const n = document.getElementById('reg-name').value, p = document.getElementById('reg-phone').value, s = document.getElementById('reg-pass').value;
-        if(!n || !p || !s) return Swal.fire('بيانات ناقصة');
+    function login() {
+        const name = document.getElementById('u-name').value;
+        const phone = document.getElementById('u-phone').value;
+        if(!name || !phone) return Swal.fire('خطأ','كمل بياناتك يا ملك','error');
         
-        const data = { name: n, phone: p, pass: s, pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', status: 'online' };
-        db.ref('users/' + p).set(data).then(() => {
-            localStorage.setItem('star_session', JSON.stringify(data));
+        const user = { name, phone, pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+        db.ref('users/' + phone).set(user).then(() => {
+            localStorage.setItem('star_session', JSON.stringify(user));
             location.reload();
         });
     }
 
-    async function ownerAccess() {
-        const { value: code } = await Swal.fire({ title: 'رمز المالك', input: 'password' });
+    async function adminAccess() {
+        const { value: code } = await Swal.fire({ title: 'كود المالك السري', input: 'password' });
         if(code === "2009257mama") {
-            const adminData = { name: 'الإمبراطور المالك 👑', phone: 'admin_001', role: 'admin', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
-            localStorage.setItem('star_session', JSON.stringify(adminData));
+            const admin = { name: 'المالك النجم 👑', phone: 'admin_001', role: 'admin', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+            localStorage.setItem('star_session', JSON.stringify(admin));
             location.reload();
         }
     }
 
-    // 3. تشغيل التطبيق
-    function launchApp() {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        document.getElementById('my-name').innerText = me.name;
-        document.getElementById('my-pfp').src = me.pfp;
+    function startApp() {
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        document.getElementById('my-display-name').innerText = me.name;
+        document.getElementById('my-img').src = me.pfp;
 
         if(me.role === 'admin') {
-            document.getElementById('admin-icon').style.display = 'block';
+            document.getElementById('admin-only').style.display = 'block';
             syncAdmin();
         }
-
-        // تحديث الحالة أونلاين
-        db.ref('users/' + me.phone).update({ status: 'online' });
-        window.onbeforeunload = () => db.ref('users/' + me.phone).update({ status: 'offline' });
-
-        syncUsers();
-    }
-
-    function syncUsers() {
+        
         db.ref('users').on('value', snap => {
-            const list = document.getElementById('contacts-list');
-            list.innerHTML = "";
+            const cont = document.getElementById('contacts');
+            cont.innerHTML = "";
             snap.forEach(u => {
                 const user = u.val();
                 if(user.phone === me.phone) return;
-                
-                const roomID = [me.phone, user.phone].sort().join("_");
-                list.innerHTML += `
-                    <div class="chat-item" onclick="openChat('${roomID}', '${user.name}', '${user.pfp}')">
-                        <img src="${user.pfp}" class="pfp-small">
-                        <div class="status-dot ${user.status === 'online' ? 'online' : ''}"></div>
-                        <div style="flex:1; margin-right:15px">
-                            <b>${user.name}</b><br>
-                            <small style="color:#8696a0">${user.status === 'online' ? 'متصل الآن' : 'غير متصل'}</small>
-                        </div>
+                cont.innerHTML += `
+                    <div class="row" onclick="openChat('${user.phone}', '${user.name}', '${user.pfp}')">
+                        <img src="${user.pfp}" class="pfp">
+                        <div style="margin-right:15px"><b>${user.name}</b><br><small>متوفر الآن</small></div>
                     </div>`;
             });
         });
     }
 
-    function openChat(id, name, pfp) {
-        activeChatID = id;
-        document.getElementById('chat-screen').style.display = 'flex';
-        document.getElementById('chat-title').innerText = name;
-        document.getElementById('chat-pfp').src = pfp;
+    function openChat(target, name, type) {
+        if(type === 'group') {
+            activeChat = 'global_group';
+            document.getElementById('chat-pfp-box').innerHTML = '<div class="pfp group-icon"><i class="fas fa-users"></i></div>';
+        } else {
+            activeChat = [me.phone, target].sort().join("_");
+            document.getElementById('chat-pfp-box').innerHTML = `<img src="${type}" class="pfp">`;
+        }
 
-        db.ref('chats/' + id).on('value', snap => {
-            const box = document.getElementById('chat-msgs');
+        document.getElementById('chat-win').style.display = 'flex';
+        document.getElementById('chat-name').innerText = name;
+
+        db.ref('chats/' + activeChat).off(); // فك الارتباط القديم
+        db.ref('chats/' + activeChat).on('value', snap => {
+            const box = document.getElementById('msgs-box');
             box.innerHTML = "";
             snap.forEach(m => {
-                const msg = m.val();
-                const isMe = msg.sender === me.phone;
-                box.innerHTML += `<div class="bubble ${isMe ? 'me' : 'other'}">${msg.text}</div>`;
+                const d = m.val();
+                const isMe = d.s === me.phone;
+                box.innerHTML += `
+                    <div class="bubble ${isMe ? 'me' : 'other'}">
+                        ${!isMe ? `<span class="sender-name">${d.sender_name || 'عضو'}</span>` : ''}
+                        ${d.t}
+                    </div>`;
             });
             box.scrollTop = box.scrollHeight;
-            if(snap.exists()) document.getElementById('msg-sound').play();
+            if(snap.exists()) document.getElementById('notif-sound').play();
         });
     }
 
-    function sendMsg() {
-        const txt = document.getElementById('msg-input').value;
-        if(!txt || !activeChatID) return;
-        db.ref('chats/' + activeChatID).push({ sender: me.phone, text: txt, time: Date.now() });
-        document.getElementById('msg-input').value = "";
+    function sendText() {
+        const val = document.getElementById('text-in').value;
+        if(!val) return;
+        db.ref('chats/' + activeChat).push({ s: me.phone, sender_name: me.name, t: val });
+        document.getElementById('text-in').value = "";
     }
 
-    // 4. ميزات متقدمة
+    function sendImage(input) {
+        if(input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = (e) => db.ref('chats/' + activeChat).push({ s: me.phone, sender_name: me.name, t: `<img src="${e.target.result}">` });
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
     async function changePfp() {
         const { value: file } = await Swal.fire({ title: 'اختر لوجو جديد', input: 'file', inputAttributes: { accept: 'image/*' } });
         if(file) {
@@ -235,31 +237,26 @@
 
     function syncAdmin() {
         db.ref('users').on('value', snap => {
-            const list = document.getElementById('admin-users-list');
-            list.innerHTML = "";
+            const div = document.getElementById('users-list-admin');
+            div.innerHTML = "";
             snap.forEach(u => {
-                const user = u.val();
-                if(user.role === 'admin') return;
-                list.innerHTML += `<div class="admin-row">
-                    <span>${user.name}</span>
-                    <button onclick="db.ref('users/${user.phone}').remove()" style="background:red; color:white; padding:5px; border-radius:5px; border:none">طرد ❌</button>
-                </div>`;
+                if(u.val().phone !== me.phone) {
+                    div.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:#2a3942; padding:10px; border-radius:10px">
+                        <span>${u.val().name}</span>
+                        <button onclick="db.ref('users/${u.key}').remove()" style="color:#ff3b30; background:none; border:none; font-weight:bold">طرد ❌</button>
+                    </div>`;
+                }
             });
         });
     }
 
-    function toggleAdmin() { const p = document.getElementById('admin-panel'); p.style.display = (p.style.display === 'block') ? 'none' : 'block'; }
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; }
-    function logout() { localStorage.clear(); location.reload(); }
-    function requestMic() { navigator.mediaDevices.getUserMedia({ audio: true }).then(() => Swal.fire('جاهز', 'تم الوصول للميكروفون بنجاح', 'success')); }
-    
-    async function uploadImage(input) {
-        if(input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => db.ref('chats/' + activeChatID).push({ sender: me.phone, text: `<img src="${e.target.result}" style="max-width:100%; border-radius:10px">`, time: Date.now() });
-            reader.readAsDataURL(input.files[0]);
-        }
+    function toggleSettings() {
+        const s = document.getElementById('settings-menu');
+        s.style.display = s.style.display === 'block' ? 'none' : 'block';
     }
+
+    function closeChat() { document.getElementById('chat-win').style.display = 'none'; }
+    function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
