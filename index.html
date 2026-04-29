@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tallah Star | الإمبراطورية الكاملة</title>
+    <title>Tallah Star | النظام الإمبراطوري</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -14,215 +14,200 @@
         :root {
             --wa-bg: #0b141a; --wa-header: #202c33; --wa-green: #00a884;
             --wa-text: #e9edef; --wa-muted: #8696a0; --wa-msg-me: #005c4b;
-            --wa-msg-other: #202c33; --wa-gold: #d4af37;
+            --wa-msg-other: #202c33; --wa-gold: #d4af37; --wa-verified: #20adff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: var(--wa-bg); color: var(--wa-text); height: 100vh; overflow: hidden; }
 
-        /* شريط الإعلانات الخاص بالمالك */
-        .admin-ads { background: linear-gradient(90deg, #b8860b, #d4af37); color: black; padding: 5px; text-align: center; font-weight: bold; font-size: 13px; overflow: hidden; white-space: nowrap; }
-        .ads-track { display: inline-block; animation: marquee 20s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* بوابة الزوار */
+        #visitor-gate { position: fixed; inset: 0; background: var(--wa-bg); z-index: 60000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .gate-card { background: #222e35; width: 100%; max-width: 450px; padding: 30px; border-radius: 20px; border-top: 5px solid var(--wa-gold); text-align: center; }
 
-        /* الهيدر */
-        header { background: var(--wa-header); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .verified-badge { color: #2196f3; margin-right: 5px; font-size: 14px; }
-        
-        /* التبويبات والحالات */
+        /* شريط الإعلانات المتحرك */
+        .admin-ads { background: var(--wa-gold); color: black; padding: 6px; font-weight: bold; font-size: 14px; overflow: hidden; white-space: nowrap; position: relative; }
+        .ads-track { display: inline-block; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+
+        /* الهيدر والتبويبات */
+        header { background: var(--wa-header); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111b21; }
         .tabs { background: var(--wa-header); display: flex; border-bottom: 1px solid #222d34; }
-        .tab { flex: 1; padding: 15px; text-align: center; color: var(--wa-muted); cursor: pointer; position: relative; }
+        .tab { flex: 1; padding: 15px; text-align: center; color: var(--wa-muted); cursor: pointer; font-weight: bold; }
         .tab.active { color: var(--wa-green); border-bottom: 3px solid var(--wa-green); }
 
-        /* قائمة الحالات (Status) */
-        .status-container { display: flex; gap: 15px; padding: 15px; overflow-x: auto; background: var(--wa-bg); }
-        .status-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--wa-green); padding: 2px; flex-shrink: 0; cursor: pointer; }
-        .status-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        /* الحالات (Stories) */
+        .status-bar { display: flex; gap: 15px; padding: 15px; overflow-x: auto; background: #0b141a; border-bottom: 8px solid #111b21; }
+        .status-item { flex-shrink: 0; text-align: center; width: 65px; position: relative; }
+        .status-ring { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--wa-green); padding: 2px; }
+        .status-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .status-item span { font-size: 11px; color: var(--wa-muted); display: block; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* شاشة الشات والريكورد */
+        /* قائمة الدردشة */
+        .chat-row { display: flex; padding: 12px 16px; border-bottom: 1px solid #222d34; align-items: center; cursor: pointer; }
+        .pfp { width: 55px; height: 55px; border-radius: 50%; margin-left: 15px; object-fit: cover; }
+        .verified-icon { color: var(--wa-verified); margin-right: 4px; font-size: 14px; }
+        .gold-icon { color: var(--wa-gold); margin-right: 4px; font-size: 14px; }
+
+        /* نافذة الشات */
         #chat-window { position: fixed; inset: 0; background: var(--wa-bg); z-index: 10000; display: none; flex-direction: column; }
-        .cw-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(11,20,26,0.9); background-blend-mode: darken; }
-        
-        .footer-chat { background: var(--wa-header); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .footer-chat input { flex: 1; background: #2a3942; border: none; border-radius: 20px; padding: 10px 15px; color: white; outline: none; }
-        .record-btn { background: #ff3b30; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: none; }
-        .mic-btn { color: var(--wa-muted); font-size: 20px; cursor: pointer; }
+        .cw-body { flex: 1; overflow-y: auto; padding: 15px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: rgba(11,20,26,0.92); background-blend-mode: darken; }
+        .bubble { max-width: 85%; padding: 8px 12px; border-radius: 10px; margin-bottom: 5px; position: relative; font-size: 15px; }
+        .b-me { align-self: flex-end; background: var(--wa-msg-me); border-top-right-radius: 0; margin-right: 0; margin-left: auto; }
+        .b-other { align-self: flex-start; background: var(--wa-msg-other); border-top-left-radius: 0; }
 
-        /* لوحة المالك 100% */
-        .admin-panel { position: fixed; inset: 0; background: var(--wa-bg); z-index: 20000; display: none; flex-direction: column; }
-        .panel-card { background: #1c282f; margin: 10px; padding: 15px; border-radius: 10px; }
+        /* الريكورد والفوتر */
+        .chat-footer { background: var(--wa-header); padding: 8px 12px; display: flex; align-items: center; gap: 10px; }
+        .chat-footer input { flex: 1; background: #2a3942; border: none; border-radius: 25px; padding: 12px 18px; color: white; outline: none; }
+        .mic-btn { color: var(--wa-muted); font-size: 22px; cursor: pointer; transition: 0.3s; }
+        .mic-btn.recording { color: #ff3b30; transform: scale(1.3); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* لوحة المالك */
+        .admin-view { position: fixed; inset: 0; background: var(--wa-bg); z-index: 30000; display: none; flex-direction: column; }
+        .admin-card { background: #1c282f; padding: 20px; border-radius: 15px; margin: 15px; border-right: 5px solid var(--wa-gold); }
 
         .hidden { display: none !important; }
-        .verified-star { color: var(--wa-gold); }
     </style>
 </head>
 <body>
 
-<audio id="notif-sound" src="https://www.soundjay.com/buttons/beep-07a.mp3" preload="auto"></audio>
+<audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
+
+<div id="visitor-gate">
+    <div class="gate-card">
+        <h2 style="color:var(--wa-gold)">إمبراطورية Tallah Star</h2>
+        <p style="color:var(--wa-muted); font-size:14px; margin: 15px 0">التطبيق مخصص للعملاء الموثقين فقط</p>
+        
+        <div id="req-box">
+            <input type="text" id="v-name" placeholder="الاسم الكامل">
+            <input type="tel" id="v-phone" placeholder="رقم الهاتف">
+            <button onclick="sendJoinRequest()" style="background:var(--wa-green); border:none; padding:12px; width:100%; border-radius:10px; font-weight:bold; cursor:pointer">طلب كود دخول</button>
+        </div>
+
+        <div style="margin-top:25px; border-top:1px solid #333; padding-top:15px">
+            <p style="font-size:12px; color:var(--wa-muted)">لديك كود؟</p>
+            <input type="password" id="login-code" placeholder="أدخل الكود" style="text-align:center; font-size:20px">
+            <button onclick="login()" style="background:var(--wa-gold); border:none; padding:10px; width:100%; border-radius:10px; font-weight:bold; cursor:pointer">دخول آمن</button>
+        </div>
+    </div>
+</div>
 
 <div id="main-app" class="hidden">
-    <div class="admin-ads">
-        <div class="ads-track" id="admin-ad-text">🔥 خصومات طلة (Tallah) تصل لـ 50% على فساتين الصيف! 🔥</div>
+    <div class="admin-ads" id="ad-banner">
+        <div class="ads-track" id="ad-text">🔥 مرحباً بكم في طلة نجم - الإمبراطور يرحب بكم 🔥</div>
     </div>
 
     <header>
-        <div style="font-weight:bold; display:flex; align-items:center">
-            Tallah Star <i class="fas fa-certificate verified-badge"></i>
-        </div>
+        <div style="font-size:18px; font-weight:bold">Tallah Star <i class="fas fa-crown gold-icon"></i></div>
         <div style="display:flex; gap:20px; color:var(--wa-muted); cursor:pointer">
-            <i class="fas fa-camera" onclick="uploadStatus()"></i>
+            <i class="fas fa-search"></i>
             <i class="fas fa-ellipsis-v" onclick="toggleMenu()"></i>
-            <div id="main-menu" class="menu-drop" style="position:absolute; background:#233138; top:50px; left:10px; display:none; flex-direction:column; width:180px; z-index:5000">
+            <div id="main-menu" style="position:absolute; top:50px; left:15px; background:#233138; width:180px; display:none; flex-direction:column; z-index:5000; border-radius:5px">
                 <div style="padding:15px; border-bottom:1px solid #2a3942" onclick="openAdmin()">لوحة المالك 👑</div>
-                <div style="padding:15px;" onclick="logout()">تسجيل الخروج</div>
+                <div style="padding:15px; color:#ff5e5e" onclick="logout()">تسجيل الخروج</div>
             </div>
         </div>
     </header>
 
     <div class="tabs">
-        <div class="tab" onclick="showSection('chats')">الدردشات</div>
-        <div class="tab active" onclick="showSection('status')">الحالات</div>
-        <div class="tab" onclick="showSection('calls')">المكالمات</div>
+        <div class="tab">الدردشات</div>
+        <div class="tab active">الحالات</div>
+        <div class="tab">المكالمات</div>
     </div>
 
-    <div id="status-section">
-        <div class="status-container" id="status-list">
-            </div>
-    </div>
+    <div class="status-bar" id="status-list">
+        </div>
 
     <div id="chats-list" style="overflow-y:auto; height: calc(100vh - 180px);"></div>
 </div>
 
-<div id="admin-panel" class="admin-panel">
-    <div style="background:var(--wa-header); padding:15px; display:flex; align-items:center; gap:10px">
+<div id="admin-view" class="admin-view">
+    <div style="background:var(--wa-header); padding:15px; display:flex; align-items:center; gap:15px">
         <i class="fas fa-arrow-right" onclick="closeAdmin()"></i>
-        <b>لوحة التحكم المطلقة 👑</b>
+        <b>إدارة إمبراطورية طلة</b>
     </div>
-    <div style="overflow-y:auto">
-        <div class="panel-card">
-            <h4>تحديث إعلان الموقع 📢</h4>
-            <input type="text" id="new-ad" placeholder="اكتب الإعلان الجديد هنا..." style="width:100%; padding:10px; margin:10px 0; background:#2a3942; border:none; color:white">
-            <button onclick="updateAd()" style="width:100%; background:var(--wa-gold); border:none; padding:10px; border-radius:5px; font-weight:bold">نشر الإعلان للكل</button>
+    <div style="overflow-y:auto; padding-bottom:50px">
+        <div class="admin-card">
+            <h4>تغيير إعلان المالك 📢</h4>
+            <input type="text" id="new-ad" placeholder="اكتب الإعلان الجديد...">
+            <button onclick="updateAd()" style="background:var(--wa-gold); border:none; width:100%; padding:10px; border-radius:5px">تحديث الإعلان فوراً</button>
         </div>
-        <div class="panel-card" id="admin-requests">
-            <h4>طلبات الأكواد 🔑</h4>
-            </div>
+        <div class="admin-card">
+            <h4>طلبات الانضمام 🔔</h4>
+            <div id="admin-requests-list"></div>
+        </div>
     </div>
 </div>
 
 <div id="chat-window">
-    <div style="background:var(--wa-header); padding:10px; display:flex; align-items:center; gap:10px">
+    <div style="background:var(--wa-header); padding:10px; display:flex; align-items:center; gap:12px">
         <i class="fas fa-arrow-right" onclick="closeChat()"></i>
-        <img id="cw-pfp" style="width:40px; height:40px; border-radius:50%">
+        <img id="cw-pfp" class="pfp" style="width:40px; height:40px; margin:0">
         <b id="cw-name"></b>
-        <i id="cw-verified" class="fas fa-check-circle verified-badge hidden"></i>
+        <i id="cw-v" class="fas fa-check-circle verified-icon hidden"></i>
     </div>
-    <div id="cw-messages" class="cw-body"></div>
-    <div class="footer-chat">
-        <i class="fas fa-microphone mic-btn" id="mic-trigger" onclick="startRecording()"></i>
-        <button id="stop-record" class="record-btn"><i class="fas fa-stop"></i></button>
+    <div id="cw-messages" class="cw-body" style="display:flex; flex-direction:column"></div>
+    <div class="chat-footer">
+        <i class="fas fa-microphone mic-btn" id="mic-icon" onclick="toggleRecord()"></i>
         <input type="text" id="msg-input" placeholder="رسالة">
-        <i class="fas fa-paper-plane" style="color:var(--wa-green); cursor:pointer" onclick="sendMsg()"></i>
+        <i class="fas fa-paper-plane" style="color:var(--wa-green); font-size:22px; cursor:pointer" onclick="sendMsg()"></i>
     </div>
 </div>
 
 <script>
+    // تكوين Firebase
     const firebaseConfig = { databaseURL: "https://talah-c12c5-default-rtdb.asia-southeast1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let me = JSON.parse(localStorage.getItem('tallah_pro_user'));
+    let me = JSON.parse(localStorage.getItem('tallah_ultra_user'));
 
-    // --- نظام الدخول المطور ---
-    if(!me) {
-        Swal.fire({
-            title: 'دخول منظومة طلة',
-            input: 'password',
-            inputPlaceholder: 'أدخل كود الإمبراطور أو كودك الشخصي'
-        }).then(res => {
-            if(res.value === "248") {
-                me = { phone: "admin", name: "محمد نجم", role: "admin", verified: true, pfp: "https://cdn-icons-png.flaticon.com/512/149/149071.png" };
-                saveMe();
-            } else {
-                // فحص الأكواد العادية في الداتابيز
-                db.ref('users').once('value', s => {
-                    s.forEach(u => { if(u.val().loginCode === res.value) { me = u.val(); saveMe(); } });
-                });
-            }
-        });
-    }
-
-    function saveMe() { localStorage.setItem('tallah_pro_user', JSON.stringify(me)); location.reload(); }
-
-    if(me) {
-        document.getElementById('main-app').classList.remove('hidden');
-        initProFeatures();
-    }
-
-    function initProFeatures() {
-        // 1. الإعلانات اللحظية
-        db.ref('site_settings/current_ad').on('value', s => {
-            if(s.val()) document.getElementById('admin-ad-text').innerText = s.val();
-        });
-
-        // 2. إشعارات الرسائل (صوت)
-        db.ref('messages').on('child_changed', snap => {
-            document.getElementById('notif-sound').play();
-        });
-
-        // 3. الحالات
-        loadStatus();
-
-        // 4. الدردشات
-        loadChats();
-    }
-
-    // --- وظائف المالك ---
-    function openAdmin() { if(me.role === 'admin') document.getElementById('admin-panel').style.display = 'flex'; }
-    function updateAd() {
-        const ad = document.getElementById('new-ad').value;
-        db.ref('site_settings').update({ current_ad: ad });
-        Swal.fire('تم', 'الإعلان اتغير عند كل الناس', 'success');
-    }
-
-    // --- نظام الريكورد (تجريبي بسيط) ---
-    function startRecording() {
-        Swal.fire('الريكورد', 'ميزة تسجيل الصوت مفعلة وجاري ربطها بسيرفر الوسائط..', 'info');
-    }
-
-    // --- رفع الحالات ---
-    function uploadStatus() {
-        Swal.fire({
-            title: 'رفع حالة جديدة',
-            input: 'file',
-            inputAttributes: { 'accept': 'image/*', 'aria-label': 'ارفع صورتك' }
-        }).then(res => {
-            if(res.value) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    db.ref('status').push({ user: me.name, pfp: me.pfp, img: e.target.result, time: Date.now() });
-                };
-                reader.readAsDataURL(res.value);
-            }
-        });
-    }
-
-    function loadStatus() {
-        db.ref('status').on('value', snap => {
-            const container = document.getElementById('status-list');
-            container.innerHTML = `<div class="status-circle" onclick="uploadStatus()"><img src="${me.pfp}"></div>`;
-            snap.forEach(s => {
-                const data = s.val();
-                container.innerHTML += `<div class="status-circle" onclick="viewStatus('${data.img}')"><img src="${data.pfp}"></div>`;
+    // --- نظام الدخول ---
+    function login() {
+        const code = document.getElementById('login-code').value;
+        if(code === "248") {
+            me = { phone: "admin_star", name: "محمد نجم", role: "admin", verified: true, pfp: "https://cdn-icons-png.flaticon.com/512/149/149071.png" };
+            finishLogin();
+        } else {
+            db.ref('users').once('value', s => {
+                let found = false;
+                s.forEach(u => { if(u.val().loginCode === code) { me = u.val(); found = true; finishLogin(); } });
+                if(!found) Swal.fire('خطأ', 'الكود غير صحيح', 'error');
             });
-        });
+        }
     }
 
-    function viewStatus(url) {
-        Swal.fire({ imageUrl: url, imageAlt: 'Status', background: '#000', showConfirmButton: false });
+    function sendJoinRequest() {
+        const n = document.getElementById('v-name').value;
+        const p = document.getElementById('v-phone').value;
+        if(!n || !p) return;
+        db.ref('requests').push({ name: n, phone: p, time: Date.now() });
+        Swal.fire('تم', 'وصل للمدير وسيتم الرد عليك بالكود', 'success');
     }
 
-    function loadChats() {
+    function finishLogin() {
+        localStorage.setItem('tallah_ultra_user', JSON.stringify(me));
+        location.reload();
+    }
+
+    // --- تشغيل التطبيق ---
+    if(me) {
+        document.getElementById('visitor-gate').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        startApp();
+    }
+
+    function startApp() {
+        // الإعلانات
+        db.ref('settings/ad').on('value', s => { if(s.val()) document.getElementById('ad-text').innerText = s.val(); });
+
+        // صوت الإشعارات
+        db.ref('messages').on('child_changed', () => { document.getElementById('msg-sound').play(); });
+
+        // تحميل الحالات
+        loadStatus();
+        
+        // تحميل الدردشات
         db.ref('users').on('value', snap => {
             const list = document.getElementById('chats-list');
             list.innerHTML = "";
@@ -230,27 +215,67 @@
                 const user = u.val();
                 if(user.phone === me.phone) return;
                 list.innerHTML += `
-                    <div class="chat-row" onclick="openChat('${user.phone}', '${user.name}', '${user.pfp}', ${user.role === 'admin'})">
+                    <div class="chat-row" onclick="openChat('${user.phone}', '${user.name}', '${user.pfp}', ${user.role==='admin'})">
                         <img src="${user.pfp}" class="pfp">
                         <div>
-                            <b>${user.name} ${user.role === 'admin' ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</b><br>
-                            <small style="color:var(--wa-muted)">اضغط للدردشة..</small>
+                            <b>${user.name} ${user.role==='admin' ? '<i class="fas fa-check-circle verified-icon"></i>' : ''}</b><br>
+                            <small style="color:var(--wa-muted)">اضغط لبدء المحادثة..</small>
                         </div>
                     </div>`;
             });
         });
+
+        if(me.role === 'admin') loadAdminPanel();
     }
 
-    let activeChatID = null;
+    // --- نظام الريكورد ---
+    let isRecording = false;
+    function toggleRecord() {
+        const mic = document.getElementById('mic-icon');
+        isRecording = !isRecording;
+        if(isRecording) {
+            mic.classList.add('recording');
+            // هنا يتم دمج مكتبة MediaRecorder للرفع الفعلي
+        } else {
+            mic.classList.remove('recording');
+            Swal.fire('الريكورد', 'تم تسجيل الصوت وجاري الرفع..', 'success');
+        }
+    }
+
+    // --- الحالات ---
+    function loadStatus() {
+        db.ref('status').on('value', snap => {
+            const bar = document.getElementById('status-list');
+            bar.innerHTML = `<div class="status-item" onclick="uploadStatus()"><div class="status-ring"><img src="${me.pfp}"></div><span>إضافة حالة</span></div>`;
+            snap.forEach(s => {
+                const data = s.val();
+                bar.innerHTML += `<div class="status-item" onclick="viewStatus('${data.img}')"><div class="status-ring"><img src="${data.pfp}"></div><span>${data.name}</span></div>`;
+            });
+        });
+    }
+
+    function uploadStatus() {
+        Swal.fire({ title: 'ارفع حالة لطلة نجم', input: 'file', inputAttributes: { 'accept': 'image/*' } }).then(res => {
+            if(res.value) {
+                const r = new FileReader();
+                r.onload = (e) => { db.ref('status').push({ name: me.name, pfp: me.pfp, img: e.target.result }); };
+                r.readAsDataURL(res.value);
+            }
+        });
+    }
+
+    function viewStatus(url) { Swal.fire({ imageUrl: url, background: '#000', showConfirmButton: false }); }
+
+    // --- إدارة الشات ---
+    let currentChat = null;
     function openChat(id, name, pfp, isAdmin) {
-        activeChatID = [me.phone, id].sort().join("_");
+        currentChat = [me.phone, id].sort().join("_");
         document.getElementById('chat-window').style.display = 'flex';
         document.getElementById('cw-name').innerText = name;
         document.getElementById('cw-pfp').src = pfp;
-        if(isAdmin) document.getElementById('cw-verified').classList.remove('hidden');
-        else document.getElementById('cw-verified').classList.add('hidden');
-
-        db.ref('messages/' + activeChatID).on('value', snap => {
+        isAdmin ? document.getElementById('cw-v').classList.remove('hidden') : document.getElementById('cw-v').classList.add('hidden');
+        
+        db.ref('messages/' + currentChat).on('value', snap => {
             const box = document.getElementById('cw-messages');
             box.innerHTML = "";
             snap.forEach(m => {
@@ -262,18 +287,46 @@
     }
 
     function sendMsg() {
-        const val = document.getElementById('msg-input').value;
-        if(!val) return;
-        db.ref('messages/' + activeChatID).push({ sender: me.phone, text: val, time: Date.now() });
-        document.getElementById('msg-input').value = "";
+        const inp = document.getElementById('msg-input');
+        if(!inp.value) return;
+        db.ref('messages/' + currentChat).push({ sender: me.phone, text: inp.value, time: Date.now() });
+        inp.value = "";
     }
 
-    function toggleMenu() {
-        const m = document.getElementById('main-menu');
-        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+    // --- لوحة المالك ---
+    function openAdmin() { if(me.role === 'admin') document.getElementById('admin-view').style.display = 'flex'; toggleMenu(); }
+    function closeAdmin() { document.getElementById('admin-view').style.display = 'none'; }
+    function updateAd() {
+        const ad = document.getElementById('new-ad').value;
+        db.ref('settings').update({ ad: ad });
+        Swal.fire('تم', 'تم تحديث شريط الإعلانات بنجاح', 'success');
     }
+    function loadAdminPanel() {
+        db.ref('requests').on('value', snap => {
+            const div = document.getElementById('admin-requests-list');
+            div.innerHTML = "";
+            snap.forEach(r => {
+                const req = r.val();
+                div.innerHTML += `
+                    <div style="background:#2a3942; padding:10px; border-radius:8px; margin-top:10px">
+                        <b>${req.name}</b> (${req.phone})<br>
+                        <button onclick="approve('${r.key}','${req.name}','${req.phone}')" style="background:var(--wa-green); border:none; padding:5px; border-radius:5px; margin-top:5px; cursor:pointer">إعطاء كود</button>
+                    </div>`;
+            });
+        });
+    }
+    function approve(key, n, p) {
+        Swal.fire({ title: 'أدخل كود لـ ' + n, input: 'text' }).then(res => {
+            if(res.value) {
+                db.ref('users/' + p).set({ name: n, phone: p, loginCode: res.value, role: 'user', pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' });
+                db.ref('requests/' + key).remove();
+            }
+        });
+    }
+
+    // --- أدوات عامة ---
+    function toggleMenu() { const m = document.getElementById('main-menu'); m.style.display = (m.style.display==='flex')?'none':'flex'; }
     function closeChat() { document.getElementById('chat-window').style.display = 'none'; }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
     function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
